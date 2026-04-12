@@ -3,10 +3,11 @@ import { Link, Navigate } from 'react-router-dom'
 import { useAuthStore } from '@/store'
 import styles from './AuthPage.module.css'
 
-export function LoginPage() {
+export function RegisterPage() {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated)
   const [login, setLogin] = useState('')
   const [password, setPassword] = useState('')
+  const [confirm, setConfirm] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -14,19 +15,28 @@ export function LoginPage() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    if (!login.trim() || !password) return
+    if (!login.trim() || !password || !confirm) return
+
+    if (password !== confirm) {
+      setError('Пароли не совпадают.')
+      return
+    }
+    if (password.length < 6) {
+      setError('Пароль должен быть не менее 6 символов.')
+      return
+    }
 
     setLoading(true)
     setError(null)
 
     try {
       // TODO: заменить на реальный вызов API когда появится бэкенд авторизации
-      // const res = await authApi.login({ login, password })
+      // const res = await authApi.register({ login, password })
       // useAuthStore.getState().setAuth(res.user, res.token)
       await new Promise((r) => setTimeout(r, 600))
-      setError('Авторизация ещё не реализована на бэкенде.')
+      setError('Регистрация ещё не реализована на бэкенде.')
     } catch {
-      setError('Неверный логин или пароль.')
+      setError('Не удалось создать аккаунт. Попробуйте позже.')
     } finally {
       setLoading(false)
     }
@@ -44,14 +54,14 @@ export function LoginPage() {
           <span className={styles.logoName}>SpamBreaker</span>
         </div>
 
-        <h1 className={styles.title}>Добро пожаловать</h1>
-        <p className={styles.sub}>Войдите в свой аккаунт</p>
+        <h1 className={styles.title}>Создать аккаунт</h1>
+        <p className={styles.sub}>Регистрация займёт меньше минуты</p>
 
         <form className={styles.form} onSubmit={handleSubmit}>
           <div className={styles.field}>
-            <label className={styles.label} htmlFor="login">Логин</label>
+            <label className={styles.label} htmlFor="reg-login">Логин</label>
             <input
-              id="login"
+              id="reg-login"
               className={styles.input}
               type="text"
               placeholder="your_login"
@@ -63,15 +73,29 @@ export function LoginPage() {
           </div>
 
           <div className={styles.field}>
-            <label className={styles.label} htmlFor="password">Пароль</label>
+            <label className={styles.label} htmlFor="reg-password">Пароль</label>
             <input
-              id="password"
+              id="reg-password"
+              className={styles.input}
+              type="password"
+              placeholder="Минимум 6 символов"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              autoComplete="new-password"
+              disabled={loading}
+            />
+          </div>
+
+          <div className={styles.field}>
+            <label className={styles.label} htmlFor="reg-confirm">Повторите пароль</label>
+            <input
+              id="reg-confirm"
               className={styles.input}
               type="password"
               placeholder="••••••••"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              autoComplete="current-password"
+              value={confirm}
+              onChange={(e) => setConfirm(e.target.value)}
+              autoComplete="new-password"
               disabled={loading}
             />
           </div>
@@ -81,16 +105,16 @@ export function LoginPage() {
           <button
             className={styles.submitBtn}
             type="submit"
-            disabled={loading || !login.trim() || !password}
+            disabled={loading || !login.trim() || !password || !confirm}
           >
             {loading ? <span className={styles.spinner} /> : null}
-            {loading ? 'Вход…' : 'Войти'}
+            {loading ? 'Создаём аккаунт…' : 'Зарегистрироваться'}
           </button>
         </form>
 
         <div className={styles.footer}>
-          <span className={styles.footerText}>Нет аккаунта?</span>
-          <Link to="/register" className={styles.footerLink}>Зарегистрироваться</Link>
+          <span className={styles.footerText}>Уже есть аккаунт?</span>
+          <Link to="/login" className={styles.footerLink}>Войти</Link>
         </div>
       </div>
     </div>
