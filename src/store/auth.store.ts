@@ -24,7 +24,7 @@ interface AuthState {
 
 export const useAuthStore = create<AuthState>((set) => ({
   // TODO: заменить на false когда появится бэкенд авторизации
-  isAuthenticated: true,
+  isAuthenticated: false,
   user: null,
   token: null,
 
