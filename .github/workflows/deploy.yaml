@@ -1,0 +1,68 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, master, develop ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      MODE: ${{ github.ref_name == 'main' && 'prod' || 'test' }}
+      BUILD_ENV: ${{ github.ref_name == 'main' && secrets.PROD_ENV || secrets.TEST_ENV }}
+      SERVER_CONFIG: ${{ secrets.SSH_CONFIG }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Prepare ssh
+        env:
+          DEPLOY_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+        run: |
+          # Создаем приватный ключ для SSH
+          mkdir -p ~/.ssh
+          echo -n "$DEPLOY_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh -o StrictHostKeyChecking=no -i ~/.ssh/deploy_key $SERVER_CONFIG echo "SSH connection successful"
+
+      - name: Prepare images
+        run: |
+          TAG="$(cat VERSION)"
+          echo "$BUILD_ENV" > .env
+          sed -i "s/^MODE=dev$/MODE=$MODE/" .env
+          sed -i "s/^TAG=.*$/TAG=$TAG/" .env
+          docker compose build
+          docker save -o all_images.tar spambreaker-front-$MODE:$TAG
+
+      - name: Deploy
+        env:
+          APP_DIR: /home/ubuntu/spambreaker/front
+        run: |
+          ssh -o StrictHostKeyChecking=no -i ~/.ssh/deploy_key $SERVER_CONFIG \
+            "mkdir -p $APP_DIR/$MODE/infra"
+          
+          ssh -o StrictHostKeyChecking=no -i ~/.ssh/deploy_key $SERVER_CONFIG \
+            "cd $APP_DIR/$MODE && docker compose down" || echo "Down error"
+          
+          scp -o StrictHostKeyChecking=no -i ~/.ssh/deploy_key all_images.tar \
+            $SERVER_CONFIG:$APP_DIR/$MODE || echo "SCP image error"
+          scp -o StrictHostKeyChecking=no -i ~/.ssh/deploy_key -r .env docker-compose.yaml \
+            $SERVER_CONFIG:$APP_DIR/$MODE/ || echo "SCP configs error"
+          
+          ssh -o StrictHostKeyChecking=no -i ~/.ssh/deploy_key $SERVER_CONFIG \
+            "docker load -i $APP_DIR/$MODE/all_images.tar" || echo "Image load error"
+          ssh -o StrictHostKeyChecking=no -i ~/.ssh/deploy_key $SERVER_CONFIG \
+            "cd $APP_DIR/$MODE && docker compose up -d --force-recreate" || echo "Run error"
+          
+          RESULT=$(ssh -o StrictHostKeyChecking=no -i ~/.ssh/deploy_key $SERVER_CONFIG \
+            "cd $APP_DIR/$MODE && docker compose ps -q | wc -l")
+          EXPECT=$(ssh -o StrictHostKeyChecking=no -i ~/.ssh/deploy_key $SERVER_CONFIG \
+            "cd $APP_DIR/$MODE && docker compose config --services | wc -l")
+          if [[ "$RESULT" -eq "$EXPECT" ]]; then
+            echo "Success"
+          else
+            echo "Expected $EXPECT containers, got $RESULT"
+            exit 1
+          fi
+
