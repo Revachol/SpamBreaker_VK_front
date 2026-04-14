@@ -1,10 +1,14 @@
 import { useState } from 'react'
-import { Link, Navigate } from 'react-router-dom'
+import { Link, Navigate, useNavigate } from 'react-router-dom'
+import { authApi, ApiClientError } from '@/api'
 import { useAuthStore } from '@/store'
 import styles from './AuthPage.module.css'
 
 export function RegisterPage() {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated)
+  const setAuth = useAuthStore((s) => s.setAuth)
+  const navigate = useNavigate()
+
   const [login, setLogin] = useState('')
   const [password, setPassword] = useState('')
   const [confirm, setConfirm] = useState('')
@@ -30,13 +34,20 @@ export function RegisterPage() {
     setError(null)
 
     try {
-      // TODO: заменить на реальный вызов API когда появится бэкенд авторизации
-      // const res = await authApi.register({ login, password })
-      // useAuthStore.getState().setAuth(res.user, res.token)
-      await new Promise((r) => setTimeout(r, 600))
-      setError('Регистрация ещё не реализована на бэкенде.')
-    } catch {
-      setError('Не удалось создать аккаунт. Попробуйте позже.')
+      const res = await authApi.register({ login: login.trim(), password })
+      setAuth(res.token, res.user ?? null)
+      navigate('/dashboard', { replace: true })
+    } catch (err) {
+      if (err instanceof ApiClientError) {
+        const body = err.body as { error?: string }
+        if (err.status === 409) {
+          setError('Пользователь с таким логином уже существует.')
+        } else {
+          setError(body?.error ?? `Ошибка ${err.status}`)
+        }
+      } else {
+        setError('Не удалось подключиться к серверу.')
+      }
     } finally {
       setLoading(false)
     }
@@ -45,7 +56,6 @@ export function RegisterPage() {
   return (
     <div className={styles.page}>
       <div className={styles.bg} />
-
       <Link to="/" className={styles.backLink}>← Главная</Link>
 
       <div className={styles.card}>
@@ -107,7 +117,7 @@ export function RegisterPage() {
             type="submit"
             disabled={loading || !login.trim() || !password || !confirm}
           >
-            {loading ? <span className={styles.spinner} /> : null}
+            {loading && <span className={styles.spinner} />}
             {loading ? 'Создаём аккаунт…' : 'Зарегистрироваться'}
           </button>
         </form>

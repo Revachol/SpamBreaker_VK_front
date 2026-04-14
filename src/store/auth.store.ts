@@ -1,15 +1,9 @@
-/**
- * Auth store — скелет для будущей JWT-авторизации.
- *
- * Сейчас хранит только флаг isAuthenticated = true (bypass).
- * Позже: login/logout, refresh-token, persist в localStorage.
- */
 import { create } from 'zustand'
 
 interface User {
   id: string
   login: string
-  role: 'admin' | 'viewer'
+  role: string
 }
 
 interface AuthState {
@@ -17,17 +11,39 @@ interface AuthState {
   token: string | null
   isAuthenticated: boolean
 
-  // Actions
-  setAuth: (user: User, token: string) => void
+  setAuth: (token: string, user?: User | null) => void
   clearAuth: () => void
 }
 
-export const useAuthStore = create<AuthState>((set) => ({
-  // TODO: заменить на false когда появится бэкенд авторизации
-  isAuthenticated: false,
-  user: null,
-  token: null,
+const TOKEN_KEY = 'sb_token'
+const USER_KEY  = 'sb_user'
 
-  setAuth: (user, token) => set({ user, token, isAuthenticated: true }),
-  clearAuth: () => set({ user: null, token: null, isAuthenticated: false }),
+// Восстанавливаем сессию из localStorage при старте приложения
+function loadPersistedAuth(): Pick<AuthState, 'token' | 'user' | 'isAuthenticated'> {
+  const token = localStorage.getItem(TOKEN_KEY)
+  if (!token) return { token: null, user: null, isAuthenticated: false }
+
+  try {
+    const raw = localStorage.getItem(USER_KEY)
+    const user = raw ? (JSON.parse(raw) as User) : null
+    return { token, user, isAuthenticated: true }
+  } catch {
+    return { token, user: null, isAuthenticated: true }
+  }
+}
+
+export const useAuthStore = create<AuthState>((set) => ({
+  ...loadPersistedAuth(),
+
+  setAuth: (token, user = null) => {
+    localStorage.setItem(TOKEN_KEY, token)
+    if (user) localStorage.setItem(USER_KEY, JSON.stringify(user))
+    set({ token, user, isAuthenticated: true })
+  },
+
+  clearAuth: () => {
+    localStorage.removeItem(TOKEN_KEY)
+    localStorage.removeItem(USER_KEY)
+    set({ token: null, user: null, isAuthenticated: false })
+  },
 }))
