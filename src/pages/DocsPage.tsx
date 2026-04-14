@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import styles from './DocsPage.module.css'
+import {Link} from "react-router-dom"
 
 /* ── Types ── */
 type Method = 'GET' | 'POST'
@@ -201,6 +202,7 @@ export function DocsPage() {
 
   return (
     <div className={styles.page}>
+      <Link to="/" className={styles.backLink}>← Главная</Link>
       {/* Hero */}
       <div className={styles.hero}>
         <div className={styles.eyebrow}>

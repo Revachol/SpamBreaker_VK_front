@@ -1,11 +1,15 @@
 import { useState } from 'react'
-import { Link, Navigate } from 'react-router-dom'
+import { Link, Navigate, useNavigate } from 'react-router-dom'
+import { authApi, ApiClientError } from '@/api'
 import { useAuthStore } from '@/store'
 import styles from './AuthPage.module.css'
 
 export function LoginPage() {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated)
-  const [login, setLogin] = useState('')
+  const setAuth = useAuthStore((s) => s.setAuth)
+  const navigate = useNavigate()
+
+  const [username, setLogin] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -14,19 +18,26 @@ export function LoginPage() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    if (!login.trim() || !password) return
+    if (!username.trim() || !password) return
 
     setLoading(true)
     setError(null)
 
     try {
-      // TODO: заменить на реальный вызов API когда появится бэкенд авторизации
-      // const res = await authApi.login({ login, password })
-      // useAuthStore.getState().setAuth(res.user, res.token)
-      await new Promise((r) => setTimeout(r, 600))
-      setError('Авторизация ещё не реализована на бэкенде.')
-    } catch {
-      setError('Неверный логин или пароль.')
+      const res = await authApi.login({ username: username.trim(), password })
+      setAuth(res.token, res.user ? { ...res.user, login: res.user.username } : null)
+      navigate('/dashboard', { replace: true })
+    } catch (err) {
+      if (err instanceof ApiClientError) {
+        const body = err.body as { error?: string }
+        if (err.status === 401 || err.status === 403) {
+          setError('Неверный логин или пароль.')
+        } else {
+          setError(body?.error ?? `Ошибка ${err.status}`)
+        }
+      } else {
+        setError('Не удалось подключиться к серверу.')
+      }
     } finally {
       setLoading(false)
     }
@@ -35,7 +46,6 @@ export function LoginPage() {
   return (
     <div className={styles.page}>
       <div className={styles.bg} />
-
       <Link to="/" className={styles.backLink}>← Главная</Link>
 
       <div className={styles.card}>
@@ -55,7 +65,7 @@ export function LoginPage() {
               className={styles.input}
               type="text"
               placeholder="your_login"
-              value={login}
+              value={username}
               onChange={(e) => setLogin(e.target.value)}
               autoComplete="username"
               disabled={loading}
@@ -81,9 +91,9 @@ export function LoginPage() {
           <button
             className={styles.submitBtn}
             type="submit"
-            disabled={loading || !login.trim() || !password}
+            disabled={loading || !username.trim() || !password}
           >
-            {loading ? <span className={styles.spinner} /> : null}
+            {loading && <span className={styles.spinner} />}
             {loading ? 'Вход…' : 'Войти'}
           </button>
         </form>
