@@ -10,10 +10,6 @@ RUN npm ci --frozen-lockfile
 # Копируем исходники и собираем
 COPY . .
 
-# Передаём URL бэкенда на этапе сборки
-ARG VITE_API_URL
-ENV VITE_API_URL=${VITE_API_URL}
-
 RUN npm run build
 
 # ── Stage 2: serve ────────────────────────────────────────────────────
