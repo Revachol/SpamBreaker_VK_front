@@ -9,7 +9,7 @@ export function RegisterPage() {
   const setAuth = useAuthStore((s) => s.setAuth)
   const navigate = useNavigate()
 
-  const [login, setLogin] = useState('')
+  const [username, setLogin] = useState('')
   const [password, setPassword] = useState('')
   const [confirm, setConfirm] = useState('')
   const [loading, setLoading] = useState(false)
@@ -19,7 +19,7 @@ export function RegisterPage() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    if (!login.trim() || !password || !confirm) return
+    if (!username.trim() || !password || !confirm) return
 
     if (password !== confirm) {
       setError('Пароли не совпадают.')
@@ -34,8 +34,8 @@ export function RegisterPage() {
     setError(null)
 
     try {
-      const res = await authApi.register({ login: login.trim(), password, confirm_password: confirm })
-      setAuth(res.token, res.user ?? null)
+      const res = await authApi.register({ username: username.trim(), password, confirm_password: confirm })
+      setAuth(res.token, res.user ? { ...res.user, login: res.user.username } : null)
       navigate('/dashboard', { replace: true })
     } catch (err) {
       if (err instanceof ApiClientError) {
@@ -75,7 +75,7 @@ export function RegisterPage() {
               className={styles.input}
               type="text"
               placeholder="your_login"
-              value={login}
+              value={username}
               onChange={(e) => setLogin(e.target.value)}
               autoComplete="username"
               disabled={loading}
@@ -115,7 +115,7 @@ export function RegisterPage() {
           <button
             className={styles.submitBtn}
             type="submit"
-            disabled={loading || !login.trim() || !password || !confirm}
+            disabled={loading || !username.trim() || !password || !confirm}
           >
             {loading && <span className={styles.spinner} />}
             {loading ? 'Создаём аккаунт…' : 'Зарегистрироваться'}

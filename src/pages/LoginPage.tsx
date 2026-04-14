@@ -9,7 +9,7 @@ export function LoginPage() {
   const setAuth = useAuthStore((s) => s.setAuth)
   const navigate = useNavigate()
 
-  const [login, setLogin] = useState('')
+  const [username, setLogin] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -18,14 +18,14 @@ export function LoginPage() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    if (!login.trim() || !password) return
+    if (!username.trim() || !password) return
 
     setLoading(true)
     setError(null)
 
     try {
-      const res = await authApi.login({ login: login.trim(), password })
-      setAuth(res.token, res.user ?? null)
+      const res = await authApi.login({ username: username.trim(), password })
+      setAuth(res.token, res.user ? { ...res.user, login: res.user.username } : null)
       navigate('/dashboard', { replace: true })
     } catch (err) {
       if (err instanceof ApiClientError) {
@@ -65,7 +65,7 @@ export function LoginPage() {
               className={styles.input}
               type="text"
               placeholder="your_login"
-              value={login}
+              value={username}
               onChange={(e) => setLogin(e.target.value)}
               autoComplete="username"
               disabled={loading}
@@ -91,7 +91,7 @@ export function LoginPage() {
           <button
             className={styles.submitBtn}
             type="submit"
-            disabled={loading || !login.trim() || !password}
+            disabled={loading || !username.trim() || !password}
           >
             {loading && <span className={styles.spinner} />}
             {loading ? 'Вход…' : 'Войти'}

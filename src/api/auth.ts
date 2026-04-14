@@ -1,12 +1,12 @@
 import { apiClient } from './client'
 
 export interface LoginRequest {
-  login: string
+  username: string
   password: string
 }
 
 export interface RegisterRequest {
-  login: string
+  username: string
   password: string
   confirm_password: string
 }
@@ -16,7 +16,7 @@ export interface AuthResponse {
   token: string
   user?: {
     id: string
-    login: string
+    username: string
     role: string
   }
 }
