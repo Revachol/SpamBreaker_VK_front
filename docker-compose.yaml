@@ -3,16 +3,16 @@ services:
     build:
       context: .
       dockerfile: infra/dockerfiles/frontend.Dockerfile
-      args:
-        VITE_API_URL: ${VITE_API_URL:-http://localhost:8080}
     image: spambreaker-front-${MODE:-dev}:${TAG:-latest}
     container_name: front_${MODE:-dev}
+    environment:
+      VITE_API_URL: ${VITE_API_URL:-http://localhost:8080}
     ports:
       - "${FRONT_EXPORT:-3000}:80"
+    networks:
+      - front-net
     restart: unless-stopped
 
-# Если запускаешь всё вместе — подключи к сети бэкенда:
-# networks:
-#   default:
-#     external: true
-#     name: net-${MODE:-dev}
+networks:
+  front-net:
+    name: front-net-${MODE:-dev}
