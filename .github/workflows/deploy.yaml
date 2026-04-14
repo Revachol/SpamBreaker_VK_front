@@ -39,11 +39,9 @@ jobs:
         env:
           APP_DIR: /home/ubuntu/spambreaker/front
         run: |
+          PROJECT="f$MODE"
           ssh -o StrictHostKeyChecking=no -i ~/.ssh/deploy_key $SERVER_CONFIG \
-            "mkdir -p $APP_DIR/$MODE/infra"
-          
-          ssh -o StrictHostKeyChecking=no -i ~/.ssh/deploy_key $SERVER_CONFIG \
-            "cd $APP_DIR/$MODE && docker compose down" || echo "Down error"
+            "cd $APP_DIR/$MODE && docker compose -p $PROJECT down" || echo "Down error"
           
           scp -o StrictHostKeyChecking=no -i ~/.ssh/deploy_key all_images.tar \
             $SERVER_CONFIG:$APP_DIR/$MODE || echo "SCP image error"
@@ -53,10 +51,10 @@ jobs:
           ssh -o StrictHostKeyChecking=no -i ~/.ssh/deploy_key $SERVER_CONFIG \
             "docker load -i $APP_DIR/$MODE/all_images.tar" || echo "Image load error"
           ssh -o StrictHostKeyChecking=no -i ~/.ssh/deploy_key $SERVER_CONFIG \
-            "cd $APP_DIR/$MODE && docker compose up -d --force-recreate" || echo "Run error"
+            "cd $APP_DIR/$MODE && docker compose -p $PROJECT up -d --force-recreate" || echo "Run error"
           
           RESULT=$(ssh -o StrictHostKeyChecking=no -i ~/.ssh/deploy_key $SERVER_CONFIG \
-            "cd $APP_DIR/$MODE && docker compose ps -q | wc -l")
+            "cd $APP_DIR/$MODE && docker compose -p $PROJECT ps -q | wc -l")
           EXPECT=$(ssh -o StrictHostKeyChecking=no -i ~/.ssh/deploy_key $SERVER_CONFIG \
             "cd $APP_DIR/$MODE && docker compose config --services | wc -l")
           if [[ "$RESULT" -eq "$EXPECT" ]]; then
