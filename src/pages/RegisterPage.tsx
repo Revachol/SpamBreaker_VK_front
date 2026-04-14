@@ -34,7 +34,7 @@ export function RegisterPage() {
     setError(null)
 
     try {
-      const res = await authApi.register({ login: login.trim(), password })
+      const res = await authApi.register({ login: login.trim(), password, confirm_password: confirm })
       setAuth(res.token, res.user ?? null)
       navigate('/dashboard', { replace: true })
     } catch (err) {

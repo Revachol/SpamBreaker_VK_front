@@ -8,6 +8,7 @@ export interface LoginRequest {
 export interface RegisterRequest {
   login: string
   password: string
+  confirm_password: string
 }
 
 // Поправить под реальную схему ответа бэкенда если отличается
