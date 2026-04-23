@@ -25,7 +25,7 @@ export function LoginPage() {
 
     try {
       const res = await authApi.login({ username: username.trim(), password })
-      setAuth(res.token, res.user ? { ...res.user, login: res.user.username } : null)
+      setAuth(res.token, { id: res.id, login: res.username, role: res.role })
       navigate('/dashboard', { replace: true })
     } catch (err) {
       if (err instanceof ApiClientError) {

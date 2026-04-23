@@ -96,9 +96,21 @@ export function TelegramSetupPage() {
     }
   }, [token, navigate])
 
-  function copyCommand() {
+  async function copyCommand() {
     if (!token) return
-    navigator.clipboard.writeText(`/connect ${token}`)
+    const text = `/connect ${token}`
+    try {
+      await navigator.clipboard.writeText(text)
+    } catch {
+      // fallback for HTTP / old browsers
+      const el = document.createElement('textarea')
+      el.value = text
+      el.style.cssText = 'position:fixed;opacity:0'
+      document.body.appendChild(el)
+      el.select()
+      document.execCommand('copy')
+      document.body.removeChild(el)
+    }
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
   }

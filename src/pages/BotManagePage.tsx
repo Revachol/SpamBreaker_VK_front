@@ -28,7 +28,7 @@ export function BotManagePage() {
         // Загружаем настройки
         const settings = await moderationApi.getTelegramBotSettings()
         setSensitivity(settings.sensitivity)
-        setBannedWords(settings.banned_words)
+        setBannedWords(settings.banned_words ?? [])
         
         // Загружаем статус бота
         // TODO: Возможно, стоит объединить эти два эндпоинта
