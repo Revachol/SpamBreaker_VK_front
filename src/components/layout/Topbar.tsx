@@ -32,7 +32,13 @@ export function Topbar() {
 
         {isAuthenticated && (
           <div className={styles.userBlock}>
-            <span className={styles.userName}>{user?.login ?? 'Аккаунт'}</span>
+            <span
+              className={styles.userName}
+              onClick={() => navigate('/dashboard')}
+              style={{ cursor: 'pointer' }}
+            >
+              {user?.login ?? 'Аккаунт'}
+            </span>
             <button className={styles.logoutBtn} onClick={handleLogout}>
               Выйти
             </button>

@@ -15,7 +15,7 @@ export interface CheckRecord {
   text: string
   label: VerdictLabel
   confidence: number
-  all_scores: AllScores
+  all_scores: AllScores | null
   created_at: string // ISO 8601 UTC
 }
 
