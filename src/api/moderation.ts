@@ -14,4 +14,23 @@ export const moderationApi = {
 
   /** GET /api/v1/history/:id */
   getRecord: (id: string) => apiClient.get<CheckRecord>(`/api/v1/history/${id}`),
+
+  // ── Telegram Bot API ────────────────────────────────────────────────
+  /** GET /api/v1/bots/telegram/token */
+  getTelegramBotToken: () => apiClient.get<import('@/types').TelegramBotToken>('/api/v1/bots/telegram/token'),
+
+  /** GET /api/v1/bots/telegram/status */
+  getTelegramBotStatus: (token: string) =>
+    apiClient.get<import('@/types').TelegramBotStatus>(`/api/v1/bots/telegram/status?token=${token}`),
+
+  /** GET /api/v1/bots/telegram/settings */
+  getTelegramBotSettings: () =>
+    apiClient.get<import('@/types').TelegramBotSettings>('/api/v1/bots/telegram/settings'),
+
+  /** POST /api/v1/bots/telegram/settings */
+  updateTelegramBotSettings: (settings: Partial<import('@/types').TelegramBotSettings>) =>
+    apiClient.post<import('@/types').TelegramBotSettings>('/api/v1/bots/telegram/settings', settings),
+
+  /** POST /api/v1/bots/telegram/disable */
+  disableTelegramBot: () => apiClient.post<void>('/api/v1/bots/telegram/disable', {}),
 }

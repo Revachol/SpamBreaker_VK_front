@@ -72,8 +72,40 @@ Content-Type: application/json
         </div>
       </section>
 
+      {/* ── Feature cards ── */}
+      <section className={styles.features}>
+        <Link to="/dashboard" className={styles.featureCard}>
+          <div className={styles.featureIconWrap}><span className={styles.featureIcon}>⚡</span></div>
+          <div className={styles.featureContent}>
+            <div className={styles.featureTag}>Для команд</div>
+            <h2 className={styles.featureTitle}>Готовые решения</h2>
+            <p className={styles.featureDesc}>
+              Панель управления с историей проверок, статистикой и мониторингом состояния сервиса.
+            </p>
+            <div className={styles.featureFooter}>
+              <span>Открыть панель</span>
+              <span className={styles.featureArrow}>→</span>
+            </div>
+          </div>
+        </Link>
+        <Link to="/docs" className={`${styles.featureCard} ${styles.featureCardAlt}`}>
+          <div className={styles.featureIconWrap}><span className={styles.featureIcon}>{'</>'}</span></div>
+          <div className={styles.featureContent}>
+            <div className={`${styles.featureTag} ${styles.featureTagAlt}`}>Для разработчиков</div>
+            <h2 className={styles.featureTitle}>Подключить API</h2>
+            <p className={styles.featureDesc}>
+              REST API с JSON-ответами. Один POST-запрос — и вы получаете вердикт с вероятностями всех классов.
+            </p>
+            <div className={styles.featureFooter}>
+              <span>Читать документацию</span>
+              <span className={styles.featureArrow}>→</span>
+            </div>
+          </div>
+        </Link>
+      </section>
+
       {/* ── Platform selection (authenticated) ── */}
-      {isAuthenticated ? (
+      {isAuthenticated && (
         <section className={styles.platforms}>
           <div className={styles.platformsHeader}>
             <div className={styles.platformsEyebrow}>Готовые решения</div>
@@ -84,7 +116,7 @@ Content-Type: application/json
           </div>
           <div className={styles.platformCards}>
             {/* Telegram — active */}
-            <Link to="/setup/telegram" className={styles.platformCard}>
+            <Link to="/bots/telegram" className={styles.platformCard}>
               <div className={styles.platformCardTop}>
                 <div className={`${styles.platformIcon} ${styles.platformIconTg}`}>
                   <TelegramIcon />
@@ -118,38 +150,6 @@ Content-Type: application/json
               </div>
             </div>
           </div>
-        </section>
-      ) : (
-        /* ── Feature cards (guests) ── */
-        <section className={styles.features}>
-          <Link to="/dashboard" className={styles.featureCard}>
-            <div className={styles.featureIconWrap}><span className={styles.featureIcon}>⚡</span></div>
-            <div className={styles.featureContent}>
-              <div className={styles.featureTag}>Для команд</div>
-              <h2 className={styles.featureTitle}>Готовые решения</h2>
-              <p className={styles.featureDesc}>
-                Панель управления с историей проверок, статистикой и мониторингом состояния сервиса.
-              </p>
-              <div className={styles.featureFooter}>
-                <span>Открыть панель</span>
-                <span className={styles.featureArrow}>→</span>
-              </div>
-            </div>
-          </Link>
-          <Link to="/docs" className={`${styles.featureCard} ${styles.featureCardAlt}`}>
-            <div className={styles.featureIconWrap}><span className={styles.featureIcon}>{'</>'}</span></div>
-            <div className={styles.featureContent}>
-              <div className={`${styles.featureTag} ${styles.featureTagAlt}`}>Для разработчиков</div>
-              <h2 className={styles.featureTitle}>Подключить API</h2>
-              <p className={styles.featureDesc}>
-                REST API с JSON-ответами. Один POST-запрос — и вы получаете вердикт с вероятностями всех классов.
-              </p>
-              <div className={styles.featureFooter}>
-                <span>Читать документацию</span>
-                <span className={styles.featureArrow}>→</span>
-              </div>
-            </div>
-          </Link>
         </section>
       )}
 

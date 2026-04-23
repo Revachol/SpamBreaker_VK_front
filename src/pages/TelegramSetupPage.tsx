@@ -1,14 +1,16 @@
 import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuthStore } from '@/store'
+import { moderationApi } from '@/api'
+import type { TelegramBotToken } from '@/types'
 import styles from './TelegramSetupPage.module.css'
 
 // Имитация получения токена с бэкенда.
 // TODO: заменить на реальный вызов GET /api/v1/bots/telegram/token
-function generateLinkToken(userId: string): string {
-  const base = btoa(`${userId}:${Date.now()}`).replace(/=/g, '').slice(0, 24)
-  return `SB-${base.toUpperCase()}`
-}
+// function generateLinkToken(userId: string): string {
+//   const base = btoa(`${userId}:${Date.now()}`).replace(/=/g, '').slice(0, 24)
+//   return `SB-${base.toUpperCase()}`
+// }
 
 const BOT_USERNAME = 'SpamBreakerBot' // TODO: вынести в env
 
@@ -25,7 +27,7 @@ const STEPS = [
     ),
     action: (botUsername: string) => (
       <a
-        href={`https://t.me/${botUsername}`}
+        href={`https://t.me/SpamBreakerOff_bot`}
         target="_blank"
         rel="noreferrer"
         className={styles.stepLink}
@@ -58,22 +60,41 @@ const STEPS = [
   },
 ]
 
+
 export function TelegramSetupPage() {
   const user = useAuthStore((s) => s.user)
   const navigate = useNavigate()
   const [copied, setCopied] = useState(false)
   const [confirming, setConfirming] = useState(false)
+  const [linkToken, setLinkToken] = useState<string | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [retrying, setRetrying] = useState(false)
+  const [retriesLeft, setRetriesLeft] = useState(0)
 
-  const linkToken = user ? generateLinkToken(user.id) : '...'
-  const linkCommand = `/link ${linkToken}`
+  const linkCommand = linkToken ? `/link ${linkToken}` : '/link ...'
 
-  // Сохраняем токен в localStorage чтобы страница управления знала что делать
+  // Получаем токен с бэкенда
   useEffect(() => {
-    if (linkToken !== '...') {
-      localStorage.setItem('sb_link_token', linkToken)
+    async function fetchToken() {
+      try {
+        setLoading(true)
+        const response = await moderationApi.getTelegramBotToken()
+        setLinkToken(response.token)
+        // Сохраняем токен в localStorage чтобы страница управления знала что делать
+        localStorage.setItem('sb_link_token', response.token)
+      } catch (err) {
+        setError('Не удалось получить токен для подключения бота')
+        console.error('Failed to fetch Telegram bot token:', err)
+      } finally {
+        setLoading(false)
+      }
     }
-  }, [linkToken])
 
+    if (user) {
+      fetchToken()
+    }
+  }, [user])
   function handleCopy() {
     navigator.clipboard.writeText(linkCommand).then(() => {
       setCopied(true)
@@ -81,12 +102,70 @@ export function TelegramSetupPage() {
     })
   }
 
+  async function checkBotStatusWithRetry(retries = 3) {
+    if (!linkToken) return false
+    
+    setRetrying(true)
+    setRetriesLeft(retries)
+    
+    try {
+      // Проверяем статус бота с бэкенда
+      const status = await moderationApi.getTelegramBotStatus(linkToken)
+      if (status.connected) {
+        setRetrying(false)
+        return true
+      } else {
+        // Бот еще не подключен
+        if (retries > 0) {
+          // Показываем сообщение о повторной попытке
+          setError(`Бот еще не подключен. Повторная попытка через 3 секунды... (${retries} попыток осталось)`)
+          setRetriesLeft(retries)
+          // Ждем 3 секунды и повторяем попытку
+          await new Promise(resolve => setTimeout(resolve, 3000))
+          return await checkBotStatusWithRetry(retries - 1)
+        } else {
+          setError('Бот еще не подключен. Убедитесь, что вы отправили команду боту и попробуйте снова.')
+          setRetrying(false)
+          return false
+        }
+      }
+    } catch (err) {
+      if (retries > 0) {
+        // Показываем сообщение о повторной попытке
+        setError(`Ошибка при проверке статуса бота. Повторная попытка через 3 секунды... (${retries} попыток осталось)`)
+        setRetriesLeft(retries)
+        // Ждем 3 секунды и повторяем попытку
+        await new Promise(resolve => setTimeout(resolve, 3000))
+        return await checkBotStatusWithRetry(retries - 1)
+      } else {
+        setError('Не удалось проверить статус бота. Попробуйте позже.')
+        console.error('Failed to check Telegram bot status:', err)
+        setRetrying(false)
+        return false
+      }
+    }
+  }
+
   async function handleConfirm() {
+    if (!linkToken) return
+    
     setConfirming(true)
-    // TODO: GET /api/v1/bots/telegram/status?token=... чтобы проверить что бот привязался
-    // Пока просто переходим на страницу управления
-    await new Promise((r) => setTimeout(r, 800))
-    navigate('/bots/telegram/manage')
+    setError(null)
+    
+    const isConnected = await checkBotStatusWithRetry()
+    if (isConnected) {
+      // Бот успешно подключен, переходим на страницу управления
+      navigate('/bots/telegram/manage')
+    }
+    
+    setConfirming(false)
+  }
+
+  function handleCancelRetry() {
+    // Cancel the retry process
+    setRetrying(false)
+    setConfirming(false)
+    setError('Проверка подключения отменена. Нажмите кнопку снова, чтобы попробовать еще раз.')
   }
 
   return (
@@ -157,14 +236,37 @@ export function TelegramSetupPage() {
           <div className={styles.confirmNote}>
             После того как отправили команду боту — нажмите кнопку ниже.
           </div>
-          <button
-            className={styles.confirmBtn}
-            onClick={handleConfirm}
-            disabled={confirming}
-          >
-            {confirming && <span className={styles.spinner} />}
-            {confirming ? 'Проверяем подключение…' : '✓ Я подключил бота'}
-          </button>
+          
+          {error && (
+            <div className={styles.error}>
+              {error}
+            </div>
+          )}
+          
+          {retrying ? (
+            <div className={styles.confirmBtn} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span className={styles.spinner} />
+                Проверяем подключение… ({retriesLeft} попыток осталось)
+              </div>
+              <button
+                className={styles.copyBtn}
+                onClick={handleCancelRetry}
+                style={{ width: '100%' }}
+              >
+                Отменить проверку
+              </button>
+            </div>
+          ) : (
+            <button
+              className={styles.confirmBtn}
+              onClick={handleConfirm}
+              disabled={confirming || !linkToken || loading}
+            >
+              {confirming && <span className={styles.spinner} />}
+              {confirming ? 'Проверяем подключение…' : '✓ Я подключил бота'}
+            </button>
+          )}
         </div>
       </div>
     </div>

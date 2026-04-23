@@ -269,6 +269,44 @@
 }
 @keyframes spin { to { transform: rotate(360deg); } }
 
+.error {
+  color: var(--red);
+  font-size: 13px;
+  padding: 12px 16px;
+  background: rgba(255, 95, 109, 0.08);
+  border: 1px solid rgba(255, 95, 109, 0.2);
+  border-radius: var(--radius-sm);
+  margin-bottom: 16px;
+}
+
+.errorActions {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 16px;
+}
+
+.retryBtn {
+  background: transparent;
+  border: 1px solid var(--accent);
+  color: var(--accent);
+  font-family: inherit;
+  font-size: 12px;
+  padding: 8px 18px;
+  border-radius: var(--radius-sm);
+  transition: all 0.15s;
+}
+
+.retryBtn:hover {
+  background: var(--accent-dim);
+}
+
+.loading {
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--text-dim);
+  font-size: 14px;
+}
+
 @media (max-width: 768px) {
   .grid { grid-template-columns: 1fr; }
 }

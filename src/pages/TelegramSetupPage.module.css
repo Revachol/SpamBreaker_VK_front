@@ -249,3 +249,15 @@
 }
 
 @keyframes spin { to { transform: rotate(360deg); } }
+
+.error {
+  color: var(--red);
+  font-size: 13px;
+  text-align: center;
+  padding: 12px 16px;
+  background: rgba(255, 95, 109, 0.08);
+  border: 1px solid rgba(255, 95, 109, 0.2);
+  border-radius: var(--radius-sm);
+  margin-bottom: 16px;
+  width: 100%;
+}

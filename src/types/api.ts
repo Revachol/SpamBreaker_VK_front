@@ -37,3 +37,22 @@ export interface PaginationParams {
   limit?: number
   offset?: number
 }
+
+// ── Telegram Bot Types ────────────────────────────────────────────────
+export interface TelegramBotToken {
+  token: string
+  expires_at: string // ISO 8601 UTC
+  created_at: string // ISO 8601 UTC
+}
+
+export interface TelegramBotStatus {
+  connected: boolean
+  chat_id?: string
+  activated_at?: string // ISO 8601 UTC
+}
+
+export interface TelegramBotSettings {
+  sensitivity: number
+  banned_words: string[]
+  enabled: boolean
+}
