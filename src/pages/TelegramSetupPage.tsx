@@ -215,7 +215,7 @@ export function TelegramSetupPage() {
             <button
               className={styles.confirmBtn}
               onClick={handleConfirm}
-              disabled={confirming || !linkToken || loading}
+              disabled={confirming || loading || !chatId.trim()}
             >
               {confirming && <span className={styles.spinner} />}
               {confirming ? 'Проверяем подключение…' : '✓ Проверить и активировать'}
