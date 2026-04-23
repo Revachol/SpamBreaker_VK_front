@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuthStore } from '@/store'
 import { moderationApi } from '@/api'
+// @ts-expect-error - Type is used indirectly through API calls
 import type { TelegramBotToken } from '@/types'
 import styles from './TelegramSetupPage.module.css'
 

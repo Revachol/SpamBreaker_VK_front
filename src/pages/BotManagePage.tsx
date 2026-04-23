@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import styles from './BotManagePage.module.css'
 import { moderationApi } from '@/api'
+// @ts-expect-error - Types are used indirectly through API calls
 import type { TelegramBotSettings, TelegramBotStatus } from '@/types'
 
 const MOCK_CHAT_ID = '@your_group'
