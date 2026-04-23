@@ -21,7 +21,7 @@ const STEPS = [
     ),
     action: (botUsername: string) => (
       <a
-        href={`https://t.me/${botUsername}`}
+        href={`https://t.me/SpamBreakerOff_bot`}
         target="_blank"
         rel="noreferrer"
         className={styles.stepLink}
