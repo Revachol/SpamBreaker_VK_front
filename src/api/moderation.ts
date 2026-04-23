@@ -1,5 +1,5 @@
 import { apiClient } from './client'
-import type { CheckRecord, CheckRequest, HealthResponse, PaginationParams, TelegramBotToken, TelegramBotStatus, TelegramBotSettings } from '@/types'
+import type { CheckRecord, CheckRequest, HealthResponse, PaginationParams, TelegramBotToken, TelegramBotStatus, TelegramBotSettings, VerifyChatRequest, VerifyChatResponse } from '@/types'
 
 export const moderationApi = {
   /** GET /health */
@@ -33,4 +33,8 @@ export const moderationApi = {
 
   /** POST /api/v1/bots/telegram/disable */
   disableTelegramBot: () => apiClient.post<void>('/api/v1/bots/telegram/disable', {}),
+
+  /** POST /api/v1/bots/telegram/verify-chat */
+  verifyTelegramChat: (chatId: string) =>
+    apiClient.post<VerifyChatResponse>('/api/v1/bots/telegram/verify-chat', { chat_id: chatId }),
 }

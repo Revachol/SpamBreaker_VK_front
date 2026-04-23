@@ -56,3 +56,14 @@ export interface TelegramBotSettings {
   banned_words: string[]
   enabled: boolean
 }
+
+export interface VerifyChatRequest {
+  chat_id: string
+}
+
+export interface VerifyChatResponse {
+  success: boolean
+  verified: boolean
+  message: string
+  activated: boolean
+}

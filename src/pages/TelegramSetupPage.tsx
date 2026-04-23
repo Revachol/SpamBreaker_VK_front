@@ -44,11 +44,11 @@ const STEPS = [
   },
   {
     num: '03',
-    title: 'Отправьте ключ активации',
+    title: 'Введите ID чата',
     desc: (
       <>
-        Напишите боту в вашей группе следующую команду. Бот привяжет чат
-        к вашему аккаунту и начнёт работу.
+        Введите ID или username вашей группы Telegram. Бот проверит, что он находится в чате
+        и активирует модерацию.
       </>
     ),
   },
@@ -61,6 +61,7 @@ export function TelegramSetupPage() {
   const [copied, setCopied] = useState(false)
   const [confirming, setConfirming] = useState(false)
   const [linkToken, setLinkToken] = useState<string | null>(null)
+  const [chatId, setChatId] = useState<string>('')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [retrying, setRetrying] = useState(false)
@@ -68,7 +69,7 @@ export function TelegramSetupPage() {
 
   const linkCommand = linkToken ? `/link ${linkToken}` : '/link ...'
 
-  // Получаем токен с бэкенда
+  // Получаем токен с бэкенда (для совместимости с существующим кодом)
   useEffect(() => {
     async function fetchToken() {
       try {
@@ -78,8 +79,8 @@ export function TelegramSetupPage() {
         // Сохраняем токен в localStorage чтобы страница управления знала что делать
         localStorage.setItem('sb_link_token', response.token)
       } catch (err) {
-        setError('Не удалось получить токен для подключения бота')
-        console.error('Failed to fetch Telegram bot token:', err)
+        // Не показываем ошибку, так как токен больше не нужен
+        console.debug('Failed to fetch Telegram bot token (not needed for new flow):', err)
       } finally {
         setLoading(false)
       }
@@ -141,15 +142,26 @@ export function TelegramSetupPage() {
   }
 
   async function handleConfirm() {
-    if (!linkToken) return
+    if (!chatId.trim()) {
+      setError('Пожалуйста, введите ID чата')
+      return
+    }
     
     setConfirming(true)
     setError(null)
     
-    const isConnected = await checkBotStatusWithRetry()
-    if (isConnected) {
-      // Бот успешно подключен, переходим на страницу управления
-      navigate('/bots/telegram/manage')
+    try {
+      // Проверяем и активируем бота через новый API
+      const response = await moderationApi.verifyTelegramChat(chatId.trim())
+      if (response.success && response.verified) {
+        // Бот успешно подключен, переходим на страницу управления
+        navigate('/bots/telegram/manage')
+      } else {
+        setError(response.message || 'Не удалось активировать бота')
+      }
+    } catch (err) {
+      setError('Не удалось активировать бота. Убедитесь, что бот добавлен в чат и имеет необходимые права.')
+      console.error('Failed to verify Telegram chat:', err)
     }
     
     setConfirming(false)
@@ -204,19 +216,21 @@ export function TelegramSetupPage() {
                   </div>
                 )}
 
-                {/* Step 3 — token block */}
+                {/* Step 3 — chat ID input */}
                 {i === 2 && (
                   <div className={styles.tokenBlock}>
                     <div className={styles.tokenHeader}>
-                      <span className={styles.tokenLabel}>Команда для отправки в группу</span>
-                      <button className={styles.copyBtn} onClick={handleCopy}>
-                        {copied ? '✓ Скопировано' : 'Копировать'}
-                      </button>
+                      <span className={styles.tokenLabel}>ID или username чата</span>
                     </div>
-                    <pre className={styles.tokenCode}>{linkCommand}</pre>
+                    <input
+                      type="text"
+                      value={chatId}
+                      onChange={(e) => setChatId(e.target.value)}
+                      placeholder="Введите ID чата или @username"
+                      className={styles.chatIdInput}
+                    />
                     <div className={styles.tokenNote}>
-                      ⚠️ Ключ привязан к вашему аккаунту. Не передавайте его третьим лицам.
-                      Токен действителен 24 часа.
+                      ⚠️ Бот должен быть добавлен в чат как администратор перед активацией.
                     </div>
                   </div>
                 )}
@@ -228,7 +242,7 @@ export function TelegramSetupPage() {
         {/* Confirm button */}
         <div className={styles.confirmBlock}>
           <div className={styles.confirmNote}>
-            После того как отправили команду боту — нажмите кнопку ниже.
+            После того как добавили бота в чат и дали ему права — введите ID чата и нажмите кнопку ниже.
           </div>
           
           {error && (
@@ -258,7 +272,7 @@ export function TelegramSetupPage() {
               disabled={confirming || !linkToken || loading}
             >
               {confirming && <span className={styles.spinner} />}
-              {confirming ? 'Проверяем подключение…' : '✓ Я подключил бота'}
+              {confirming ? 'Проверяем подключение…' : '✓ Проверить и активировать'}
             </button>
           )}
         </div>
