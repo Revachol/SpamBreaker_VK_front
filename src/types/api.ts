@@ -66,4 +66,5 @@ export interface VerifyChatResponse {
   verified: boolean
   message: string
   activated: boolean
+  token?: string
 }

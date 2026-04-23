@@ -43,11 +43,12 @@ const STEPS = [
   },
   {
     num: '03',
-    title: 'Введите ID чата',
+    title: 'Укажите вашу группу',
     desc: (
       <>
-        Введите ID или username вашей группы Telegram. Бот проверит, что он находится в чате
-        и активирует модерацию.
+        Вставьте ссылку на группу (например{' '}
+        <strong>https://t.me/mygroupname</strong>), @username или числовой ID.
+        Бот отправит тестовое сообщение и активирует модерацию.
       </>
     ),
   },
@@ -59,23 +60,22 @@ export function TelegramSetupPage() {
   const [confirming, setConfirming] = useState(false)
   const [chatId, setChatId] = useState<string>('')
   const [error, setError] = useState<string | null>(null)
-  const [retrying, setRetrying] = useState(false)
-
 
   async function handleConfirm() {
     if (!chatId.trim()) {
-      setError('Пожалуйста, введите ID чата')
+      setError('Пожалуйста, введите ссылку или ID чата')
       return
     }
-    
+
     setConfirming(true)
     setError(null)
-    
+
     try {
-      // Проверяем и активируем бота через новый API
       const response = await moderationApi.verifyTelegramChat(chatId.trim())
       if (response.success && response.verified) {
-        // Бот успешно подключен, переходим на страницу управления
+        if (response.token) {
+          localStorage.setItem('sb_link_token', response.token)
+        }
         navigate('/bots/telegram/manage')
       } else {
         setError(response.message || 'Не удалось активировать бота')
@@ -84,15 +84,8 @@ export function TelegramSetupPage() {
       setError('Не удалось активировать бота. Убедитесь, что бот добавлен в чат и имеет необходимые права.')
       console.error('Failed to verify Telegram chat:', err)
     }
-    
-    setConfirming(false)
-  }
 
-  function handleCancelRetry() {
-    // Cancel the retry process
-    setRetrying(false)
     setConfirming(false)
-    setError('Проверка подключения отменена. Нажмите кнопку снова, чтобы попробовать еще раз.')
   }
 
   return (
@@ -147,7 +140,7 @@ export function TelegramSetupPage() {
                       type="text"
                       value={chatId}
                       onChange={(e) => setChatId(e.target.value)}
-                      placeholder="Введите ID чата или @username"
+                      placeholder="https://t.me/mygroupname или @username"
                       className={styles.chatIdInput}
                     />
                     <div className={styles.tokenNote}>
@@ -172,30 +165,14 @@ export function TelegramSetupPage() {
             </div>
           )}
           
-          {retrying ? (
-            <div className={styles.confirmBtn} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span className={styles.spinner} />
-                Проверяем подключение…
-              </div>
-              <button
-                className={styles.copyBtn}
-                onClick={handleCancelRetry}
-                style={{ width: '100%' }}
-              >
-                Отменить проверку
-              </button>
-            </div>
-          ) : (
-            <button
-              className={styles.confirmBtn}
-              onClick={handleConfirm}
-              disabled={confirming || !chatId.trim()}
-            >
-              {confirming && <span className={styles.spinner} />}
-              {confirming ? 'Проверяем подключение…' : '✓ Проверить и активировать'}
-            </button>
-          )}
+          <button
+            className={styles.confirmBtn}
+            onClick={handleConfirm}
+            disabled={confirming || !chatId.trim()}
+          >
+            {confirming && <span className={styles.spinner} />}
+            {confirming ? 'Проверяем подключение…' : 'Я подключил бота'}
+          </button>
         </div>
       </div>
     </div>
