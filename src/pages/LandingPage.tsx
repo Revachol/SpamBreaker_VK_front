@@ -1,5 +1,6 @@
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuthStore } from '@/store'
+import { useState } from 'react'
 import styles from './LandingPage.module.css'
 
 export function LandingPage() {
@@ -7,6 +8,7 @@ export function LandingPage() {
   const clearAuth = useAuthStore((s) => s.clearAuth)
   const user = useAuthStore((s) => s.user)
   const navigate = useNavigate()
+  const [isPlatformModalOpen, setIsPlatformModalOpen] = useState(false)
 
   function handleLogout() {
     clearAuth()
@@ -74,7 +76,11 @@ Content-Type: application/json
 
       {/* ── Feature cards ── */}
       <section className={styles.features}>
-        <Link to="/dashboard" className={styles.featureCard}>
+        <div
+          className={styles.featureCard}
+          onClick={() => setIsPlatformModalOpen(true)}
+          style={{ cursor: 'pointer' }}
+        >
           <div className={styles.featureIconWrap}><span className={styles.featureIcon}>⚡</span></div>
           <div className={styles.featureContent}>
             <div className={styles.featureTag}>Для команд</div>
@@ -83,11 +89,11 @@ Content-Type: application/json
               Панель управления с историей проверок, статистикой и мониторингом состояния сервиса.
             </p>
             <div className={styles.featureFooter}>
-              <span>Открыть панель</span>
+              <span>Выбрать платформу</span>
               <span className={styles.featureArrow}>→</span>
             </div>
           </div>
-        </Link>
+        </div>
         <Link to="/docs" className={`${styles.featureCard} ${styles.featureCardAlt}`}>
           <div className={styles.featureIconWrap}><span className={styles.featureIcon}>{'</>'}</span></div>
           <div className={styles.featureContent}>
@@ -105,53 +111,7 @@ Content-Type: application/json
       </section>
 
       {/* ── Platform selection (authenticated) ── */}
-      {isAuthenticated && (
-        <section className={styles.platforms}>
-          <div className={styles.platformsHeader}>
-            <div className={styles.platformsEyebrow}>Готовые решения</div>
-            <h2 className={styles.platformsTitle}>Выберите платформу</h2>
-            <p className={styles.platformsDesc}>
-              Подключите бота к вашему чату — он будет автоматически анализировать сообщения.
-            </p>
-          </div>
-          <div className={styles.platformCards}>
-            {/* Telegram — active */}
-            <Link to="/bots/telegram" className={styles.platformCard}>
-              <div className={styles.platformCardTop}>
-                <div className={`${styles.platformIcon} ${styles.platformIconTg}`}>
-                  <TelegramIcon />
-                </div>
-                <div className={styles.platformBadge}>Доступно</div>
-              </div>
-              <h3 className={styles.platformName}>Telegram</h3>
-              <p className={styles.platformDesc}>
-                Добавьте бота в группу или канал. Он будет модерировать сообщения в реальном времени.
-              </p>
-              <div className={styles.platformFooter}>
-                <span>Подключить</span>
-                <span className={styles.platformArrow}>→</span>
-              </div>
-            </Link>
-
-            {/* VK — disabled */}
-            <div className={`${styles.platformCard} ${styles.platformCardDisabled}`}>
-              <div className={styles.platformCardTop}>
-                <div className={`${styles.platformIcon} ${styles.platformIconVk}`}>
-                  <VkIcon />
-                </div>
-                <div className={`${styles.platformBadge} ${styles.platformBadgeSoon}`}>Скоро</div>
-              </div>
-              <h3 className={styles.platformName}>ВКонтакте</h3>
-              <p className={styles.platformDesc}>
-                Интеграция с сообществами ВКонтакте находится в разработке.
-              </p>
-              <div className={styles.platformFooter}>
-                <span className={styles.platformFooterMuted}>Недоступно</span>
-              </div>
-            </div>
-          </div>
-        </section>
-      )}
+      {/* Removed - now using modal approach */}
 
       {/* ── Stats ── */}
       <section className={styles.stats}>
@@ -183,6 +143,61 @@ Content-Type: application/json
         <span>SpamBreaker · v0.0.1</span>
         <span className={styles.footerDim}>TinyBERT · Go · PostgreSQL</span>
       </footer>
+      
+      {/* Platform Selection Modal */}
+      {isPlatformModalOpen && (
+        <div className={styles.modalOverlay} onClick={() => setIsPlatformModalOpen(false)}>
+          <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
+            <div className={styles.modalHeader}>
+              <h2>Выберите платформу</h2>
+              <button
+                className={styles.modalClose}
+                onClick={() => setIsPlatformModalOpen(false)}
+              >
+                ×
+              </button>
+            </div>
+            <div className={styles.modalBody}>
+              <div className={styles.platformCards}>
+                {/* Telegram — active */}
+                <Link to="/bots/telegram" className={styles.platformCard}>
+                  <div className={styles.platformCardTop}>
+                    <div className={`${styles.platformIcon} ${styles.platformIconTg}`}>
+                      <TelegramIcon />
+                    </div>
+                    <div className={styles.platformBadge}>Доступно</div>
+                  </div>
+                  <h3 className={styles.platformName}>Telegram</h3>
+                  <p className={styles.platformDesc}>
+                    Добавьте бота в группу или канал. Он будет модерировать сообщения в реальном времени.
+                  </p>
+                  <div className={styles.platformFooter}>
+                    <span>Подключить</span>
+                    <span className={styles.platformArrow}>→</span>
+                  </div>
+                </Link>
+
+                {/* VK — disabled */}
+                <div className={`${styles.platformCard} ${styles.platformCardDisabled}`}>
+                  <div className={styles.platformCardTop}>
+                    <div className={`${styles.platformIcon} ${styles.platformIconVk}`}>
+                      <VkIcon />
+                    </div>
+                    <div className={`${styles.platformBadge} ${styles.platformBadgeSoon}`}>Скоро</div>
+                  </div>
+                  <h3 className={styles.platformName}>ВКонтакте</h3>
+                  <p className={styles.platformDesc}>
+                    Интеграция с сообществами ВКонтакте находится в разработке.
+                  </p>
+                  <div className={styles.platformFooter}>
+                    <span className={styles.platformFooterMuted}>Недоступно</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

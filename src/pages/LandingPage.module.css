@@ -667,3 +667,91 @@
   .platforms { padding: 0 20px 48px; }
   .platformCards { grid-template-columns: 1fr; }
 }
+
+@media (max-width: 640px) {
+  .modalContent {
+    margin: 20px;
+    max-width: calc(100vw - 40px);
+  }
+  
+  .modalHeader,
+  .modalBody {
+    padding: 20px;
+  }
+}
+
+/* ── Modal Styles ── */
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(10, 12, 16, 0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(4px);
+}
+
+.modalContent {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  width: 100%;
+  max-width: 600px;
+  max-height: 90vh;
+  overflow: hidden;
+  position: relative;
+  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.4);
+}
+
+.modalHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24px;
+  border-bottom: 1px solid var(--border);
+}
+
+.modalHeader h2 {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 24px;
+  color: #fff;
+  margin: 0;
+}
+
+.modalClose {
+  background: transparent;
+  border: none;
+  color: var(--text-dim);
+  font-size: 24px;
+  cursor: pointer;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-sm);
+  transition: all 0.15s;
+}
+
+.modalClose:hover {
+  background: var(--panel);
+  color: var(--text);
+}
+
+.modalBody {
+  padding: 24px;
+}
+
+.modalBody .platformCards {
+  grid-template-columns: 1fr;
+  gap: 16px;
+}
+
+.modalBody .platformCard {
+  margin: 0;
+}
