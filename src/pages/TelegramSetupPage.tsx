@@ -5,14 +5,7 @@ import { moderationApi } from '@/api'
 import type { TelegramBotToken } from '@/types'
 import styles from './TelegramSetupPage.module.css'
 
-// Имитация получения токена с бэкенда.
-// TODO: заменить на реальный вызов GET /api/v1/bots/telegram/token
-// function generateLinkToken(userId: string): string {
-//   const base = btoa(`${userId}:${Date.now()}`).replace(/=/g, '').slice(0, 24)
-//   return `SB-${base.toUpperCase()}`
-// }
-
-const BOT_USERNAME = 'SpamBreakerBot' // TODO: вынести в env
+const BOT_USERNAME = import.meta.env.VITE_TELEGRAM_BOT_USERNAME || 'SpamBreakerBot'
 
 const STEPS = [
   {
@@ -27,7 +20,7 @@ const STEPS = [
     ),
     action: (botUsername: string) => (
       <a
-        href={`https://t.me/SpamBreakerOff_bot`}
+        href={`https://t.me/${botUsername}`}
         target="_blank"
         rel="noreferrer"
         className={styles.stepLink}

@@ -3,8 +3,7 @@ import styles from './BotManagePage.module.css'
 import { moderationApi } from '@/api'
 import type { TelegramBotSettings, TelegramBotStatus } from '@/types'
 
-// TODO: загружать с бэкенда GET /api/v1/bots/telegram/settings
-const MOCK_CHAT_ID = '@your_group' // заглушка
+const MOCK_CHAT_ID = '@your_group'
 
 export function BotManagePage() {
   const [sensitivity, setSensitivity] = useState(70)
