@@ -1,8 +1,6 @@
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { moderationApi } from '@/api'
-// @ts-expect-error - Type is used indirectly through API calls
-import type { TelegramBotToken } from '@/types'
 import styles from './TelegramSetupPage.module.css'
 
 const BOT_USERNAME = import.meta.env.VITE_TELEGRAM_BOT_USERNAME || 'SpamBreakerBot'
@@ -37,60 +35,76 @@ const STEPS = [
         Боту необходимы права{' '}
         <strong>Удаление сообщений</strong> и{' '}
         <strong>Блокировка пользователей</strong>{' '}
-        для полноценной работы. Минимум — права на чтение сообщений.
+        для полноценной работы.
       </>
     ),
   },
   {
     num: '03',
-    title: 'Укажите вашу группу',
+    title: 'Отправьте токен в группе',
     desc: (
       <>
-        Вставьте ссылку на группу (например{' '}
-        <strong>https://t.me/mygroupname</strong>), @username или числовой ID.
-        Бот отправит тестовое сообщение и активирует модерацию.
+        Скопируйте команду ниже и отправьте её в чат группы. Бот получит её,
+        привяжется к вашему аккаунту и начнёт модерацию.
       </>
     ),
   },
 ]
 
-
 export function TelegramSetupPage() {
   const navigate = useNavigate()
-  const [confirming, setConfirming] = useState(false)
-  const [chatId, setChatId] = useState<string>('')
-  const [error, setError] = useState<string | null>(null)
+  const [token, setToken] = useState<string | null>(null)
+  const [tokenLoading, setTokenLoading] = useState(true)
+  const [tokenError, setTokenError] = useState<string | null>(null)
+  const [copied, setCopied] = useState(false)
+  const [connected, setConnected] = useState(false)
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
-  async function handleConfirm() {
-    if (!chatId.trim()) {
-      setError('Пожалуйста, введите ссылку или ID чата')
-      return
-    }
-
-    setConfirming(true)
-    setError(null)
-
-    try {
-      const response = await moderationApi.verifyTelegramChat(chatId.trim())
-      if (response.success && response.verified) {
-        if (response.token) {
-          localStorage.setItem('sb_link_token', response.token)
-        }
-        navigate('/bots/telegram/manage')
-      } else {
-        setError(response.message || 'Не удалось активировать бота')
+  useEffect(() => {
+    async function fetchToken() {
+      try {
+        const data = await moderationApi.getTelegramBotToken()
+        setToken(data.token)
+        localStorage.setItem('sb_link_token', data.token)
+      } catch {
+        setTokenError('Не удалось загрузить токен. Обновите страницу.')
+      } finally {
+        setTokenLoading(false)
       }
-    } catch (err) {
-      setError('Не удалось активировать бота. Убедитесь, что бот добавлен в чат и имеет необходимые права.')
-      console.error('Failed to verify Telegram chat:', err)
     }
+    fetchToken()
+  }, [])
 
-    setConfirming(false)
+  useEffect(() => {
+    if (!token) return
+
+    intervalRef.current = setInterval(async () => {
+      try {
+        const status = await moderationApi.getTelegramBotStatus(token)
+        if (status.connected) {
+          if (intervalRef.current) clearInterval(intervalRef.current)
+          setConnected(true)
+          setTimeout(() => navigate('/bots/telegram/manage'), 1200)
+        }
+      } catch {
+        // polling errors — ignore
+      }
+    }, 3000)
+
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current)
+    }
+  }, [token, navigate])
+
+  function copyCommand() {
+    if (!token) return
+    navigator.clipboard.writeText(`/connect ${token}`)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
   }
 
   return (
     <div className={styles.page}>
-      {/* Header */}
       <header className={styles.header}>
         <Link to="/" className={styles.backLink}>← Главная</Link>
         <div className={styles.headerCenter}>
@@ -111,7 +125,6 @@ export function TelegramSetupPage() {
           </p>
         </div>
 
-        {/* Steps */}
         <div className={styles.steps}>
           {STEPS.map((step, i) => (
             <div key={step.num} className={styles.step}>
@@ -123,28 +136,36 @@ export function TelegramSetupPage() {
                 <div className={styles.stepTitle}>{step.title}</div>
                 <div className={styles.stepDesc}>{step.desc}</div>
 
-                {/* Step 1 action */}
                 {i === 0 && step.action && (
                   <div className={styles.stepAction}>
                     {step.action(BOT_USERNAME)}
                   </div>
                 )}
 
-                {/* Step 3 — chat ID input */}
                 {i === 2 && (
                   <div className={styles.tokenBlock}>
                     <div className={styles.tokenHeader}>
-                      <span className={styles.tokenLabel}>ID или username чата</span>
+                      <span className={styles.tokenLabel}>КОМАНДА ДЛЯ ОТПРАВКИ В ЧАТ</span>
+                      <button className={styles.copyBtn} onClick={copyCommand} disabled={!token}>
+                        {copied ? '✓ Скопировано' : 'Копировать'}
+                      </button>
                     </div>
-                    <input
-                      type="text"
-                      value={chatId}
-                      onChange={(e) => setChatId(e.target.value)}
-                      placeholder="https://t.me/mygroupname или @username"
-                      className={styles.chatIdInput}
-                    />
+                    {tokenLoading ? (
+                      <div className={styles.tokenCode} style={{ color: 'var(--text-muted)' }}>
+                        Загрузка токена…
+                      </div>
+                    ) : tokenError ? (
+                      <div className={styles.tokenCode} style={{ color: 'var(--red)', fontSize: '13px' }}>
+                        {tokenError}
+                      </div>
+                    ) : (
+                      <div className={styles.tokenCode}>
+                        /connect {token}
+                      </div>
+                    )}
                     <div className={styles.tokenNote}>
-                      ⚠️ Бот должен быть добавлен в чат как администратор перед активацией.
+                      ⚠️ Отправьте эту команду прямо в чат группы (не боту в личку).
+                      Бот должен быть добавлен как администратор.
                     </div>
                   </div>
                 )}
@@ -153,26 +174,27 @@ export function TelegramSetupPage() {
           ))}
         </div>
 
-        {/* Confirm button */}
         <div className={styles.confirmBlock}>
-          <div className={styles.confirmNote}>
-            После того как добавили бота в чат и дали ему права — введите ID чата и нажмите кнопку ниже.
-          </div>
-          
-          {error && (
-            <div className={styles.error}>
-              {error}
-            </div>
+          {connected ? (
+            <>
+              <div className={styles.connectedIcon}>✓</div>
+              <div className={styles.confirmNote} style={{ color: 'var(--accent)', fontWeight: 600 }}>
+                Бот подключён! Переходим на страницу управления…
+              </div>
+            </>
+          ) : (
+            <>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <span className={styles.spinner} style={{ borderColor: 'rgba(255,255,255,.15)', borderTopColor: 'var(--accent)' }} />
+                <span className={styles.confirmNote}>
+                  Ожидаем подключения бота…
+                </span>
+              </div>
+              <div className={styles.confirmNote} style={{ fontSize: '12px', opacity: 0.6 }}>
+                Отправьте команду в группу — страница обновится автоматически
+              </div>
+            </>
           )}
-          
-          <button
-            className={styles.confirmBtn}
-            onClick={handleConfirm}
-            disabled={confirming || !chatId.trim()}
-          >
-            {confirming && <span className={styles.spinner} />}
-            {confirming ? 'Проверяем подключение…' : 'Я подключил бота'}
-          </button>
         </div>
       </div>
     </div>
