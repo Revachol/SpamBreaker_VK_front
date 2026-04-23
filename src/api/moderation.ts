@@ -1,5 +1,5 @@
 import { apiClient } from './client'
-import type { CheckRecord, CheckRequest, HealthResponse, PaginationParams, TelegramBotToken, TelegramBotStatus, TelegramBotSettings, VerifyChatRequest, VerifyChatResponse } from '@/types'
+import type { CheckRecord, CheckRequest, HealthResponse, PaginationParams, TelegramBotToken, TelegramBotStatus, TelegramBotSettings, VerifyChatResponse } from '@/types'
 
 export const moderationApi = {
   /** GET /health */
