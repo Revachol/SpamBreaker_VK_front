@@ -47,57 +47,35 @@ export function LoginPage() {
     <div className={styles.page}>
       <div className={styles.bg} />
       <Link to="/" className={styles.backLink}>← Главная</Link>
-
       <div className={styles.card}>
         <div className={styles.logo}>
           <div className={styles.logoIcon}>🛡️</div>
           <span className={styles.logoName}>SpamBreaker</span>
         </div>
-
         <h1 className={styles.title}>Добро пожаловать</h1>
         <p className={styles.sub}>Войдите в свой аккаунт</p>
-
         <form className={styles.form} onSubmit={handleSubmit}>
           <div className={styles.field}>
             <label className={styles.label} htmlFor="login">Логин</label>
-            <input
-              id="login"
-              className={styles.input}
-              type="text"
-              placeholder="your_login"
-              value={username}
+            <input id="login" className={styles.input} type="text"
+              placeholder="your_login" value={username}
               onChange={(e) => setLogin(e.target.value)}
-              autoComplete="username"
-              disabled={loading}
-            />
+              autoComplete="username" disabled={loading} />
           </div>
-
           <div className={styles.field}>
             <label className={styles.label} htmlFor="password">Пароль</label>
-            <input
-              id="password"
-              className={styles.input}
-              type="password"
-              placeholder="••••••••"
-              value={password}
+            <input id="password" className={styles.input} type="password"
+              placeholder="••••••••" value={password}
               onChange={(e) => setPassword(e.target.value)}
-              autoComplete="current-password"
-              disabled={loading}
-            />
+              autoComplete="current-password" disabled={loading} />
           </div>
-
           {error && <div className={styles.error}>{error}</div>}
-
-          <button
-            className={styles.submitBtn}
-            type="submit"
-            disabled={loading || !username.trim() || !password}
-          >
+          <button className={styles.submitBtn} type="submit"
+            disabled={loading || !username.trim() || !password}>
             {loading && <span className={styles.spinner} />}
             {loading ? 'Вход…' : 'Войти'}
           </button>
         </form>
-
         <div className={styles.footer}>
           <span className={styles.footerText}>Нет аккаунта?</span>
           <Link to="/register" className={styles.footerLink}>Зарегистрироваться</Link>

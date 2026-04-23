@@ -15,7 +15,7 @@ export function RegisterPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  if (isAuthenticated) return <Navigate to="/dashboard" replace />
+  if (isAuthenticated) return <Navigate to="/" replace />
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -57,71 +57,42 @@ export function RegisterPage() {
     <div className={styles.page}>
       <div className={styles.bg} />
       <Link to="/" className={styles.backLink}>← Главная</Link>
-
       <div className={styles.card}>
         <div className={styles.logo}>
           <div className={styles.logoIcon}>🛡️</div>
           <span className={styles.logoName}>SpamBreaker</span>
         </div>
-
         <h1 className={styles.title}>Создать аккаунт</h1>
         <p className={styles.sub}>Регистрация займёт меньше минуты</p>
-
         <form className={styles.form} onSubmit={handleSubmit}>
           <div className={styles.field}>
             <label className={styles.label} htmlFor="reg-login">Логин</label>
-            <input
-              id="reg-login"
-              className={styles.input}
-              type="text"
-              placeholder="your_login"
-              value={username}
+            <input id="reg-login" className={styles.input} type="text"
+              placeholder="your_login" value={username}
               onChange={(e) => setLogin(e.target.value)}
-              autoComplete="username"
-              disabled={loading}
-            />
+              autoComplete="username" disabled={loading} />
           </div>
-
           <div className={styles.field}>
             <label className={styles.label} htmlFor="reg-password">Пароль</label>
-            <input
-              id="reg-password"
-              className={styles.input}
-              type="password"
-              placeholder="Минимум 6 символов"
-              value={password}
+            <input id="reg-password" className={styles.input} type="password"
+              placeholder="Минимум 6 символов" value={password}
               onChange={(e) => setPassword(e.target.value)}
-              autoComplete="new-password"
-              disabled={loading}
-            />
+              autoComplete="new-password" disabled={loading} />
           </div>
-
           <div className={styles.field}>
             <label className={styles.label} htmlFor="reg-confirm">Повторите пароль</label>
-            <input
-              id="reg-confirm"
-              className={styles.input}
-              type="password"
-              placeholder="••••••••"
-              value={confirm}
+            <input id="reg-confirm" className={styles.input} type="password"
+              placeholder="••••••••" value={confirm}
               onChange={(e) => setConfirm(e.target.value)}
-              autoComplete="new-password"
-              disabled={loading}
-            />
+              autoComplete="new-password" disabled={loading} />
           </div>
-
           {error && <div className={styles.error}>{error}</div>}
-
-          <button
-            className={styles.submitBtn}
-            type="submit"
-            disabled={loading || !username.trim() || !password || !confirm}
-          >
+          <button className={styles.submitBtn} type="submit"
+            disabled={loading || !username.trim() || !password || !confirm}>
             {loading && <span className={styles.spinner} />}
             {loading ? 'Создаём аккаунт…' : 'Зарегистрироваться'}
           </button>
         </form>
-
         <div className={styles.footer}>
           <span className={styles.footerText}>Уже есть аккаунт?</span>
           <Link to="/login" className={styles.footerLink}>Войти</Link>
