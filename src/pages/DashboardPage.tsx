@@ -73,10 +73,10 @@ export function DashboardPage() {
               <ConfidenceBar value={result.confidence} />
             </div>
             <div className={styles.scoresRow}>
-              {Object.entries(result.all_scores).map(([k, v]) => (
+              {Object.entries(result.all_scores ?? {}).map(([k, v]) => (
                 <div key={k} className={styles.scoreItem}>
                   <span className={styles.scoreKey}>{k}</span>
-                  <ConfidenceBar value={v} />
+                  <ConfidenceBar value={v as number} />
                 </div>
               ))}
             </div>
