@@ -68,7 +68,7 @@ export function LandingPage() {
           <pre className={styles.heroCodePre}>{`POST /api/v1/check
 Content-Type: application/json
 
-{ "text": "Сегодня отличный день!" }
+{ "text": "Сегодня отличный день!)" }
 
 → { "label": "positive", "confidence": 0.94 }`}</pre>
         </div>
