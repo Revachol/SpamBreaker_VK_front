@@ -1,6 +1,5 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { useAuthStore } from '@/store'
 import { moderationApi } from '@/api'
 // @ts-expect-error - Type is used indirectly through API calls
 import type { TelegramBotToken } from '@/types'
@@ -56,35 +55,11 @@ const STEPS = [
 
 
 export function TelegramSetupPage() {
-  const user = useAuthStore((s) => s.user)
   const navigate = useNavigate()
   const [confirming, setConfirming] = useState(false)
-  const [linkToken, setLinkToken] = useState<string | null>(null)
   const [chatId, setChatId] = useState<string>('')
-  const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [retrying, setRetrying] = useState(false)
-  // Получаем токен с бэкенда (для совместимости с существующим кодом)
-  useEffect(() => {
-    async function fetchToken() {
-      try {
-        setLoading(true)
-        const response = await moderationApi.getTelegramBotToken()
-        setLinkToken(response.token)
-        // Сохраняем токен в localStorage чтобы страница управления знала что делать
-        localStorage.setItem('sb_link_token', response.token)
-      } catch (err) {
-        // Не показываем ошибку, так как токен больше не нужен
-        console.debug('Failed to fetch Telegram bot token (not needed for new flow):', err)
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    if (user) {
-      fetchToken()
-    }
-  }, [user])
 
 
   async function handleConfirm() {
@@ -215,7 +190,7 @@ export function TelegramSetupPage() {
             <button
               className={styles.confirmBtn}
               onClick={handleConfirm}
-              disabled={confirming || loading || !chatId.trim()}
+              disabled={confirming || !chatId.trim()}
             >
               {confirming && <span className={styles.spinner} />}
               {confirming ? 'Проверяем подключение…' : '✓ Проверить и активировать'}
