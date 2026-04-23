@@ -68,3 +68,8 @@ export interface VerifyChatResponse {
   activated: boolean
   token?: string
 }
+
+export interface AdminInfo {
+  id: string
+  username: string
+}

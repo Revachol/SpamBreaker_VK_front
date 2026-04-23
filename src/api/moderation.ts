@@ -1,5 +1,5 @@
 import { apiClient } from './client'
-import type { CheckRecord, CheckRequest, HealthResponse, PaginationParams, TelegramBotToken, TelegramBotStatus, TelegramBotSettings, VerifyChatResponse } from '@/types'
+import type { CheckRecord, CheckRequest, HealthResponse, PaginationParams, TelegramBotToken, TelegramBotStatus, TelegramBotSettings, VerifyChatResponse, AdminInfo } from '@/types'
 
 export const moderationApi = {
   /** GET /health */
@@ -37,4 +37,17 @@ export const moderationApi = {
   /** POST /api/v1/bots/telegram/verify-chat */
   verifyTelegramChat: (chatId: string) =>
     apiClient.post<VerifyChatResponse>('/api/v1/bots/telegram/verify-chat', { chat_id: chatId }),
+
+  // ── Admins ──────────────────────────────────────────────────────────
+  /** GET /api/v1/bots/telegram/admins */
+  getTelegramAdmins: () =>
+    apiClient.get<AdminInfo[]>('/api/v1/bots/telegram/admins'),
+
+  /** POST /api/v1/bots/telegram/admins */
+  addTelegramAdmin: (username: string) =>
+    apiClient.post<AdminInfo[]>('/api/v1/bots/telegram/admins', { username }),
+
+  /** DELETE /api/v1/bots/telegram/admins/:username */
+  removeTelegramAdmin: (username: string) =>
+    apiClient.del<AdminInfo[]>(`/api/v1/bots/telegram/admins/${encodeURIComponent(username)}`),
 }

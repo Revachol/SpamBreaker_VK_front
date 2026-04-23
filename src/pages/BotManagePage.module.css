@@ -214,6 +214,127 @@
 }
 .tagRemove:hover { opacity: 1; }
 
+/* ── Admins ── */
+.adminsSection {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.adminsSectionHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.adminsSectionTitle {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 16px;
+  color: #fff;
+  margin-bottom: 4px;
+}
+
+.adminsSectionSub {
+  font-size: 12px;
+  color: var(--text-muted);
+  line-height: 1.6;
+}
+
+.adminsInputRow {
+  display: flex;
+  gap: 10px;
+}
+
+.adminsInput {
+  flex: 1;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  padding: 10px 14px;
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.adminsInput:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-dim);
+}
+.adminsInput::placeholder { color: var(--text-muted); }
+.adminsInput:disabled { opacity: 0.5; }
+
+.adminsAddBtn {
+  background: var(--accent);
+  color: #0a0c10;
+  border: none;
+  border-radius: var(--radius-sm);
+  padding: 10px 20px;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  transition: opacity 0.15s;
+  white-space: nowrap;
+}
+.adminsAddBtn:hover:not(:disabled) { opacity: 0.85; }
+.adminsAddBtn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.adminsError {
+  font-size: 12px;
+  color: var(--red);
+  padding: 8px 12px;
+  background: rgba(255,95,109,.08);
+  border: 1px solid rgba(255,95,109,.2);
+  border-radius: var(--radius-sm);
+}
+
+.adminsEmpty {
+  font-size: 12px;
+  color: var(--text-muted);
+  text-align: center;
+  padding: 12px 0;
+}
+
+.adminsList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.adminTag {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--accent-dim);
+  border: 1px solid rgba(0,229,160,.2);
+  border-radius: 20px;
+  padding: 6px 12px 6px 14px;
+}
+
+.adminTagName {
+  font-size: 13px;
+  color: var(--accent);
+  font-family: var(--font-mono);
+}
+
+.adminTagRemove {
+  background: transparent;
+  border: none;
+  color: var(--accent);
+  font-size: 16px;
+  line-height: 1;
+  padding: 0;
+  opacity: 0.5;
+  transition: opacity 0.15s;
+}
+.adminTagRemove:hover { opacity: 1; }
+
 /* ── Danger zone ── */
 .dangerZone {
   background: var(--surface);

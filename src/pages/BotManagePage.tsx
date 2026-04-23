@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react'
 import styles from './BotManagePage.module.css'
 import { moderationApi } from '@/api'
+import { useAuthStore } from '@/store'
 // @ts-expect-error - Types are used indirectly through API calls
-import type { TelegramBotSettings, TelegramBotStatus } from '@/types'
+import type { TelegramBotSettings, TelegramBotStatus, AdminInfo } from '@/types'
 
 const MOCK_CHAT_ID = '@your_group'
 
@@ -19,6 +20,14 @@ export function BotManagePage() {
   const [bannedSaved, setBannedSaved] = useState(false)
   
   const [botStatus, setBotStatus] = useState<TelegramBotStatus | null>(null)
+
+  const [admins, setAdmins] = useState<AdminInfo[]>([])
+  const [adminInput, setAdminInput] = useState('')
+  const [addingAdmin, setAddingAdmin] = useState(false)
+  const [adminError, setAdminError] = useState<string | null>(null)
+  const [adminSaved, setAdminSaved] = useState(false)
+
+  const { user } = useAuthStore()
 
   // Загружаем настройки бота с бэкенда
   useEffect(() => {
@@ -45,6 +54,14 @@ export function BotManagePage() {
         } else {
           // Если токен отсутствует, перенаправляем на страницу настройки
           setError('Токен подключения не найден. Пройдите процесс подключения заново.')
+        }
+
+        // Загружаем соадминов
+        try {
+          const adminList = await moderationApi.getTelegramAdmins()
+          setAdmins(adminList ?? [])
+        } catch {
+          // Соадмины — некритично, не блокируем UI
         }
       } catch (err) {
         setError('Не удалось загрузить настройки бота')
@@ -117,6 +134,36 @@ export function BotManagePage() {
     } catch (err) {
       setError('Не удалось отключить бота')
       console.error('Failed to disable Telegram bot:', err)
+    }
+  }
+
+  async function handleAddAdmin() {
+    const username = adminInput.trim()
+    if (!username) return
+    setAddingAdmin(true)
+    setAdminError(null)
+    setAdminSaved(false)
+    try {
+      const updated = await moderationApi.addTelegramAdmin(username)
+      setAdmins(updated ?? [])
+      setAdminInput('')
+      setAdminSaved(true)
+      setTimeout(() => setAdminSaved(false), 2500)
+    } catch (e: unknown) {
+      const msg = (e as { body?: { error?: string } })?.body?.error
+      setAdminError(msg ?? 'Не удалось добавить администратора')
+    } finally {
+      setAddingAdmin(false)
+    }
+  }
+
+  async function handleRemoveAdmin(username: string) {
+    setAdminError(null)
+    try {
+      const updated = await moderationApi.removeTelegramAdmin(username)
+      setAdmins(updated ?? [])
+    } catch {
+      setAdminError('Не удалось удалить администратора')
     }
   }
 
@@ -278,6 +325,62 @@ export function BotManagePage() {
             </div>
           </section>
         </div>
+      )}
+
+      {!loading && (
+        <section className={styles.adminsSection}>
+          <div className={styles.adminsSectionHeader}>
+            <div>
+              <div className={styles.adminsSectionTitle}>Администраторы</div>
+              <div className={styles.adminsSectionSub}>
+                Другие пользователи с доступом к этой панели управления
+              </div>
+            </div>
+            {adminSaved && <span className={styles.savedMsg}>✓ Сохранено</span>}
+          </div>
+
+          <div className={styles.adminsInputRow}>
+            <input
+              className={styles.adminsInput}
+              type="text"
+              placeholder="Логин пользователя…"
+              value={adminInput}
+              onChange={(e) => setAdminInput(e.target.value)}
+              onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleAddAdmin() } }}
+              disabled={addingAdmin}
+            />
+            <button
+              className={styles.adminsAddBtn}
+              onClick={handleAddAdmin}
+              disabled={addingAdmin || !adminInput.trim()}
+            >
+              {addingAdmin ? '…' : 'Добавить'}
+            </button>
+          </div>
+
+          {adminError && <div className={styles.adminsError}>{adminError}</div>}
+
+          {admins.length === 0 ? (
+            <div className={styles.adminsEmpty}>Соадминов пока нет</div>
+          ) : (
+            <div className={styles.adminsList}>
+              {admins.map((a) => (
+                <div key={a.id} className={styles.adminTag}>
+                  <span className={styles.adminTagName}>@{a.username}</span>
+                  {user?.login !== a.username && (
+                    <button
+                      className={styles.adminTagRemove}
+                      onClick={() => handleRemoveAdmin(a.username)}
+                      title="Удалить"
+                    >
+                      ×
+                    </button>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
       )}
 
       {!loading && (
