@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import styles from './BotManagePage.module.css'
 import { moderationApi } from '@/api'
 import { useAuthStore } from '@/store'
+import { BotStatsTab } from './BotStatsTab'
 // @ts-expect-error - Types are used indirectly through API calls
 import type { TelegramBotSettings, TelegramBotStatus, AdminInfo } from '@/types'
 
@@ -26,6 +27,8 @@ export function BotManagePage() {
   const [addingAdmin, setAddingAdmin] = useState(false)
   const [adminError, setAdminError] = useState<string | null>(null)
   const [adminSaved, setAdminSaved] = useState(false)
+
+  const [activeTab, setActiveTab] = useState<'settings' | 'stats'>('settings')
 
   const { user } = useAuthStore()
 
@@ -179,6 +182,25 @@ export function BotManagePage() {
 
   return (
     <div className={styles.page}>
+      {/* ── Tabs ── */}
+      <div className={styles.tabs}>
+        <button
+          className={`${styles.tab} ${activeTab === 'settings' ? styles.tabActive : ''}`}
+          onClick={() => setActiveTab('settings')}
+        >
+          Настройки
+        </button>
+        <button
+          className={`${styles.tab} ${activeTab === 'stats' ? styles.tabActive : ''}`}
+          onClick={() => setActiveTab('stats')}
+        >
+          Статистика
+        </button>
+      </div>
+
+      {activeTab === 'stats' && <BotStatsTab />}
+
+      {activeTab === 'settings' && <>
       {/* ── Status banner ── */}
       <div className={styles.statusBanner}>
         <div className={styles.statusDot} />
@@ -393,11 +415,11 @@ export function BotManagePage() {
                 Бот перестанет анализировать сообщения. Настройки сохранятся.
               </div>
             </div>
-            {/* TODO: POST /api/v1/bots/telegram/disable */}
             <button className={styles.dangerBtn} onClick={handleDisableBot}>Отключить</button>
           </div>
         </section>
       )}
+      </>}
     </div>
   )
 }

@@ -3,7 +3,7 @@ import { useAuthStore } from '@/store'
 import styles from './Topbar.module.css'
 
 const PAGE_TITLES: Record<string, string> = {
-  '/dashboard':       'Dashboard',
+  '/check':           'Проверка текста',
   '/history':         'История проверок',
   '/docs':            'API Docs',
   '/bots/telegram':   'Подключение Telegram',
@@ -34,7 +34,7 @@ export function Topbar() {
           <div className={styles.userBlock}>
             <span
               className={styles.userName}
-              onClick={() => navigate('/dashboard')}
+              onClick={() => navigate('/check')}
               style={{ cursor: 'pointer' }}
             >
               {user?.login ?? 'Аккаунт'}

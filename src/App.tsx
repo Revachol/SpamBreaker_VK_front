@@ -30,7 +30,7 @@ export function App() {
         {/* ── Защищённые: с sidebar layout ── */}
         <Route element={<ProtectedRoute />}>
           <Route element={<AppLayout />}>
-            <Route path="/dashboard" element={<DashboardPage />} />
+            <Route path="/check" element={<DashboardPage />} />
             <Route path="/history" element={<HistoryPage />} />
             <Route path="/bots/telegram/manage" element={<BotManagePage />} />
           </Route>
