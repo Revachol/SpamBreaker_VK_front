@@ -14,7 +14,7 @@ export function Sidebar() {
       <div className={styles.logo}>
         <div className={styles.logoIcon}>🛡️</div>
         <div>
-          <div className={styles.logoName}>SpamBreaker</div>
+          <div className={styles.logoName}><a href="/">SpamBreaker</a></div>
           <div className={styles.logoSub}>Admin Panel</div>
         </div>
       </div>
