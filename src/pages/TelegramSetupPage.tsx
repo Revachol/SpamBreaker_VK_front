@@ -61,7 +61,16 @@ export function TelegramSetupPage() {
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
   useEffect(() => {
-    async function fetchToken() {
+    async function init() {
+      // If the bot is already active, skip setup and go to management page
+      try {
+        await moderationApi.getTelegramBotSettings()
+        navigate('/bots/telegram/manage', { replace: true })
+        return
+      } catch {
+        // Not connected yet — continue with setup wizard
+      }
+
       try {
         const data = await moderationApi.getTelegramBotToken()
         setToken(data.token)
@@ -72,8 +81,8 @@ export function TelegramSetupPage() {
         setTokenLoading(false)
       }
     }
-    fetchToken()
-  }, [])
+    init()
+  }, [navigate])
 
   useEffect(() => {
     if (!token) return

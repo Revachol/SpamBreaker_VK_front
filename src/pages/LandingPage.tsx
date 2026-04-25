@@ -27,6 +27,9 @@ export function LandingPage() {
           <Link to="/docs" className={styles.navLink}>Docs</Link>
           {isAuthenticated ? (
             <>
+              <Link to="/bots/telegram/manage" className={styles.navLink}>
+                Личный кабинет
+              </Link>
               <span className={styles.navUser}>{user?.login ?? 'Аккаунт'}</span>
               <button className={styles.navBtnOutline} onClick={handleLogout}>
                 Выйти
