@@ -38,6 +38,10 @@ export const moderationApi = {
   verifyTelegramChat: (chatId: string) =>
     apiClient.post<VerifyChatResponse>('/api/v1/bots/telegram/verify-chat', { chat_id: chatId }),
 
+  /** GET /api/v1/bots/telegram/history */
+  getTelegramBotHistory: ({ limit = 50, offset = 0 }: PaginationParams = {}) =>
+    apiClient.get<CheckRecord[]>(`/api/v1/bots/telegram/history?limit=${limit}&offset=${offset}`),
+
   // ── Admins ──────────────────────────────────────────────────────────
   /** GET /api/v1/bots/telegram/admins */
   getTelegramAdmins: () =>

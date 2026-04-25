@@ -170,33 +170,22 @@ function RecordsTable({ records, title }: { records: CheckRecord[]; title: strin
 
 // ── Main component ─────────────────────────────────────────────────────
 
-interface BotStatsTabProps {
-  activatedAt: string | null
-}
-
-export function BotStatsTab({ activatedAt }: BotStatsTabProps) {
+export function BotStatsTab() {
   const [records, setRecords] = useState<CheckRecord[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     moderationApi
-      .getHistory({ limit: 200, offset: 0 })
+      .getTelegramBotHistory({ limit: 200, offset: 0 })
       .then(data => setRecords(data ?? []))
       .catch(() => setError('Не удалось загрузить статистику'))
       .finally(() => setLoading(false))
   }, [])
 
-  // Filter to records since the bot was activated
-  const filtered = useMemo(() => {
-    if (!activatedAt) return records
-    const since = new Date(activatedAt).getTime()
-    return records.filter(r => new Date(r.created_at).getTime() >= since)
-  }, [records, activatedAt])
-
   const dailyStats = useMemo<DayPoint[]>(() => {
     const map: Record<string, { total: number; banned: number }> = {}
-    filtered.forEach(r => {
+    records.forEach(r => {
       const day = r.created_at.slice(0, 10)
       if (!map[day]) map[day] = { total: 0, banned: 0 }
       map[day].total++
@@ -206,13 +195,13 @@ export function BotStatsTab({ activatedAt }: BotStatsTabProps) {
       .sort(([a], [b]) => a.localeCompare(b))
       .slice(-14)
       .map(([date, v]) => ({ date, ...v }))
-  }, [filtered])
+  }, [records])
 
-  const recentAll    = filtered.slice(0, 8)
-  const recentBanned = filtered.filter(r => r.label === 'negative').slice(0, 8)
+  const recentAll    = records.slice(0, 8)
+  const recentBanned = records.filter(r => r.label === 'negative').slice(0, 8)
 
-  const totalAll    = filtered.length
-  const totalBanned = filtered.filter(r => r.label === 'negative').length
+  const totalAll    = records.length
+  const totalBanned = records.filter(r => r.label === 'negative').length
 
   if (loading) return <div className={styles.loading}>Загрузка статистики…</div>
   if (error)   return <div className={styles.error}>{error}</div>
