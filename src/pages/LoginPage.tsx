@@ -14,7 +14,7 @@ export function LoginPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  if (isAuthenticated) return <Navigate to="/dashboard" replace />
+  if (isAuthenticated) return <Navigate to="/" replace />
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
