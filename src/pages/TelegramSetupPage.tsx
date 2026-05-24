@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { moderationApi } from '@/api'
 import styles from './TelegramSetupPage.module.css'
 
-const BOT_USERNAME = import.meta.env.VITE_TELEGRAM_BOT_USERNAME || 'SpamBreakerBot'
+const BOT_USERNAME = import.meta.env.VITE_TELEGRAM_BOT_USERNAME || '@SpamBreakerOff_bot'
 
 const STEPS = [
   {
@@ -26,7 +26,7 @@ const STEPS = [
         Открыть @{botUsername} →
       </a>
     ),
-  },
+  },  
   {
     num: '02',
     title: 'Дайте права администратора',
