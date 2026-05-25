@@ -20,7 +20,7 @@ export function LandingPage() {
       {/* ── Navbar ── */}
       <header className={styles.nav}>
         <div className={styles.navLogo}>
-          <span className={styles.navLogoIcon}>🛡️</span>
+          <span className={styles.navLogoMark}>SB</span>
           <span className={styles.navLogoName}>SpamBreaker</span>
         </div>
         <div className={styles.navLinks}>
@@ -46,34 +46,58 @@ export function LandingPage() {
 
       {/* ── Hero ── */}
       <section className={styles.hero}>
-        <div className={styles.heroBadge}>
-          <span className={styles.heroBadgeDot} />
-          ML-powered · TinyBERT + CrossAttention
-        </div>
-        <h1 className={styles.heroTitle}>
-          Анализ тональности<br />
-          <span className={styles.heroTitleAccent}>без лишнего шума</span>
-        </h1>
-        <p className={styles.heroDesc}>
-          SpamBreaker определяет позитив, нейтральный тон и негатив в тексте.
-          Подключите API в несколько строк или используйте готовые интеграции.
-        </p>
-        {!isAuthenticated && (
-          <div className={styles.heroCta}>
-            <Link to="/register" className={styles.ctaPrimary}>
-              Начать бесплатно <span className={styles.ctaArrow}>→</span>
-            </Link>
-            <Link to="/docs" className={styles.ctaSecondary}>Документация API</Link>
+        <div className={styles.heroGrid}>
+          <div className={styles.heroLeft}>
+            <div className={styles.heroBadge}>
+              <span className={styles.heroBadgeTag}>BETA</span>
+              <span>ML-фильтрация · TinyBERT · PyTorch</span>
+            </div>
+            <h1 className={styles.heroTitle}>
+              Анализ тональности<br />
+              <span className={styles.heroTitleAccent}>без лишнего шума</span>
+            </h1>
+            <p className={styles.heroDesc}>
+              SpamBreaker определяет позитив, нейтральный тон и негатив в тексте.
+              Подключите API в несколько строк или используйте готовые интеграции.
+            </p>
+            {!isAuthenticated && (
+              <div className={styles.heroCta}>
+                <Link to="/register" className={styles.ctaPrimary}>
+                  Начать бесплатно <span className={styles.ctaArrow}>→</span>
+                </Link>
+                <Link to="/docs" className={styles.ctaSecondary}>Документация API</Link>
+              </div>
+            )}
           </div>
-        )}
-        <div className={styles.heroCode}>
-          <div className={styles.heroCodeDots}><span /><span /><span /></div>
-          <pre className={styles.heroCodePre}>{`POST /api/v1/check
-Content-Type: application/json
 
-{ "text": "Сегодня отличный день!)" }
-
-→ { "label": "positive", "confidence": 0.94 }`}</pre>
+          <div className={styles.heroRight}>
+            <div className={styles.terminal}>
+              <div className={styles.terminalHeader}>
+                <span className={styles.terminalHost}>spambreaker</span>
+                <span className={styles.terminalAt}>@</span>
+                <span className={styles.terminalPath}>api:~/v1/check</span>
+              </div>
+              <pre className={styles.terminalCmd}>{`$ curl -X POST /api/v1/check \\
+  -H "Content-Type: application/json" \\
+  -d '{
+    "text":    "Купить подписчиков дёшево!",
+    "chat_id": 42
+  }'`}</pre>
+              <div className={styles.terminalDivider} />
+              <pre className={styles.terminalOutput}>{`{
+  "label":      "negative",
+  "confidence": 0.97,
+  "action":     "deleted"
+}`}</pre>
+              <div className={styles.terminalFooter}>
+                <span className={styles.terminalStatus}>● SPAM</span>
+                <span className={styles.terminalStatusLabel}>сообщение удалено</span>
+                <div className={styles.terminalSpacer} />
+                <span className={styles.terminalPromptStr}>$</span>
+                <span className={styles.terminalCursor} />
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -113,22 +137,33 @@ Content-Type: application/json
         </Link>
       </section>
 
-      {/* ── Platform selection (authenticated) ── */}
-      {/* Removed - now using modal approach */}
-
-      {/* ── Stats ── */}
-      <section className={styles.stats}>
-        {[
-          { val: '3',      label: 'класса тональности' },
-          { val: '5 000',  label: 'символов максимум'  },
-          { val: '<200ms', label: 'медианное время'    },
-          { val: 'REST',   label: 'JSON API'           },
-        ].map(({ val, label }) => (
-          <div key={label} className={styles.statItem}>
-            <div className={styles.statVal}>{val}</div>
-            <div className={styles.statLabel}>{label}</div>
-          </div>
-        ))}
+      {/* ── How it works ── */}
+      <section className={styles.process}>
+        <div className={styles.processGrid}>
+          {[
+            {
+              num: '01',
+              label: 'Подключите бота',
+              desc: 'Добавьте в Telegram-группу и выполните /connect TOKEN — займёт меньше минуты',
+            },
+            {
+              num: '02',
+              label: 'Настройте правила',
+              desc: 'Порог токсичности, список стоп-слов, реакция при нарушении: уведомить, удалить или забанить',
+            },
+            {
+              num: '03',
+              label: 'Модерация работает',
+              desc: 'ML анализирует каждое сообщение автоматически, в реальном времени — без вашего участия',
+            },
+          ].map(({ num, label, desc }) => (
+            <div key={num} className={styles.processStep}>
+              <span className={styles.processNum}>{num}</span>
+              <div className={styles.processLabel}>{label}</div>
+              <div className={styles.processDesc}>{desc}</div>
+            </div>
+          ))}
+        </div>
       </section>
 
       {/* ── Docs CTA ── */}
@@ -146,7 +181,7 @@ Content-Type: application/json
         <span>SpamBreaker · v0.0.1</span>
         <span className={styles.footerDim}>TinyBERT · Go · PostgreSQL</span>
       </footer>
-      
+
       {/* Platform Selection Modal */}
       {isPlatformModalOpen && (
         <div className={styles.modalOverlay} onClick={() => setIsPlatformModalOpen(false)}>
