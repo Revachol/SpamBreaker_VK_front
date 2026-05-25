@@ -8,8 +8,64 @@ import type { TelegramBotSettings, TelegramBotStatus, AdminInfo } from '@/types'
 
 const MOCK_CHAT_ID = '@your_group'
 
+type SensitivityLevel = 'soft' | 'medium' | 'strict'
+
+const LEVEL_THRESHOLD: Record<SensitivityLevel, number> = {
+  soft: 30,
+  medium: 60,
+  strict: 85,
+}
+
+const SENSITIVITY_LEVELS: {
+  id: SensitivityLevel
+  name: string
+  tagline: string
+  desc: string
+  blocks: string[]
+  allows: string[]
+  color: string
+  dim: string
+}[] = [
+  {
+    id: 'soft',
+    name: 'Свободный',
+    tagline: 'Чат-тусовка',
+    desc: 'Шутки, подколы и лёгкий стёб — окей. Бот реагирует только на очевидный спам и жёсткий контент.',
+    blocks: ['Спам и реклама', 'Угрозы физического вреда', 'Ссылки казино/фарм'],
+    allows: ['Подколы и троллинг', 'Лёгкий мат в контексте', 'Острые шутки'],
+    color: 'var(--accent)',
+    dim: 'rgba(0, 229, 160, 0.06)',
+  },
+  {
+    id: 'medium',
+    name: 'Умеренный',
+    tagline: 'Большой чат',
+    desc: 'Нейтральный юмор проходит, прямые оскорбления — нет. Баланс для активных сообществ.',
+    blocks: ['Прямые оскорбления', 'Реклама и спам', 'Грубый мат'],
+    allows: ['Ирония и сарказм', 'Спорные мнения', 'Нейтральный флуд'],
+    color: 'var(--blue)',
+    dim: 'rgba(77, 168, 255, 0.06)',
+  },
+  {
+    id: 'strict',
+    name: 'Строгий',
+    tagline: 'Рабочее пространство',
+    desc: 'Только по делу. Для рабочих чатов, поддержки и официальных сообществ.',
+    blocks: ['Мат и грубость', 'Любые оскорбления', 'Реклама и офтоп'],
+    allows: ['Деловое общение', 'Вопросы по теме', 'Позитивные сообщения'],
+    color: 'var(--amber)',
+    dim: 'rgba(245, 166, 35, 0.06)',
+  },
+]
+
+function valueToLevel(v: number): SensitivityLevel {
+  if (v < 45) return 'soft'
+  if (v < 73) return 'medium'
+  return 'strict'
+}
+
 export function BotManagePage() {
-  const [sensitivity, setSensitivity] = useState(70)
+  const [sensitivityLevel, setSensitivityLevel] = useState<SensitivityLevel>('medium')
   const [sensitivitySaved, setSensitivitySaved] = useState(false)
   const [savingS, setSavingS] = useState(false)
   const [loading, setLoading] = useState(true)
@@ -39,7 +95,7 @@ export function BotManagePage() {
         setLoading(true)
         // Загружаем настройки
         const settings = await moderationApi.getTelegramBotSettings()
-        setSensitivity(settings.sensitivity)
+        setSensitivityLevel(valueToLevel(settings.sensitivity))
         setBannedWords(settings.banned_words ?? [])
         
         // Загружаем статус бота
@@ -83,7 +139,7 @@ export function BotManagePage() {
     setError(null)
     
     try {
-      await moderationApi.updateTelegramBotSettings({ sensitivity })
+      await moderationApi.updateTelegramBotSettings({ sensitivity: LEVEL_THRESHOLD[sensitivityLevel] })
       setSensitivitySaved(true)
       setTimeout(() => setSensitivitySaved(false), 2500)
     } catch (err) {
@@ -170,16 +226,6 @@ export function BotManagePage() {
     }
   }
 
-  const sensitivityLabel =
-    sensitivity < 40 ? 'Мягкий' :
-    sensitivity < 70 ? 'Умеренный' :
-    sensitivity < 90 ? 'Строгий' : 'Максимальный'
-
-  const sensitivityColor =
-    sensitivity < 40 ? 'var(--accent)' :
-    sensitivity < 70 ? 'var(--blue)' :
-    sensitivity < 90 ? 'var(--amber)' : 'var(--red)'
-
   return (
     <div className={styles.page}>
       {/* ── Tabs ── */}
@@ -243,41 +289,55 @@ export function BotManagePage() {
       )}
       
       {!loading && (
-        <div className={styles.grid}>
+        <>
           {/* ── Sensitivity ── */}
           <section className={styles.card}>
             <div className={styles.cardHeader}>
               <div className={styles.cardTitle}>Чувствительность</div>
               <div className={styles.cardSub}>
-                Порог вероятности негатива, при котором бот реагирует
+                Выберите режим модерации, подходящий вашему сообществу
               </div>
             </div>
 
-            <div className={styles.sliderWrap}>
-              <div className={styles.sliderTop}>
-                <span className={styles.sliderLabel}>Порог срабатывания</span>
-                <span className={styles.sliderValue} style={{ color: sensitivityColor }}>
-                  {sensitivity}% — {sensitivityLabel}
-                </span>
-              </div>
-
-              <input
-                className={styles.slider}
-                type="range"
-                min={10}
-                max={99}
-                step={1}
-                value={sensitivity}
-                onChange={(e) => setSensitivity(Number(e.target.value))}
-                style={{ '--val': `${(sensitivity - 10) / 89 * 100}%` } as React.CSSProperties}
-              />
-
-              <div className={styles.sliderTicks}>
-                <span>Мягкий</span>
-                <span>Умеренный</span>
-                <span>Строгий</span>
-                <span>Макс.</span>
-              </div>
+            <div className={styles.sensitivityLevels}>
+              {SENSITIVITY_LEVELS.map((level) => {
+                const active = sensitivityLevel === level.id
+                return (
+                  <button
+                    key={level.id}
+                    className={`${styles.levelCard} ${active ? styles.levelCardActive : ''}`}
+                    style={active ? { borderColor: level.color, background: level.dim } : {}}
+                    onClick={() => setSensitivityLevel(level.id)}
+                  >
+                    <div className={styles.levelCardTop}>
+                      <div>
+                        <div className={styles.levelName} style={active ? { color: level.color } : {}}>
+                          {level.name}
+                        </div>
+                        <div className={styles.levelTagline}>{level.tagline}</div>
+                      </div>
+                      <div className={`${styles.levelRadio} ${active ? styles.levelRadioActive : ''}`}
+                        style={active ? { borderColor: level.color, background: level.color } : {}}
+                      />
+                    </div>
+                    <p className={styles.levelDesc}>{level.desc}</p>
+                    <div className={styles.levelExamples}>
+                      <div className={styles.levelCol}>
+                        <div className={styles.levelColTitle}>Блокирует</div>
+                        {level.blocks.map((b) => (
+                          <div key={b} className={styles.levelBlock}>× {b}</div>
+                        ))}
+                      </div>
+                      <div className={styles.levelCol}>
+                        <div className={styles.levelColTitle}>Пропускает</div>
+                        {level.allows.map((a) => (
+                          <div key={a} className={styles.levelAllow}>✓ {a}</div>
+                        ))}
+                      </div>
+                    </div>
+                  </button>
+                )
+              })}
             </div>
 
             <div className={styles.cardFooter}>
@@ -346,7 +406,7 @@ export function BotManagePage() {
               </button>
             </div>
           </section>
-        </div>
+        </>
       )}
 
       {!loading && (
