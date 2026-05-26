@@ -29,80 +29,27 @@ function LineChart({ data }: { data: DayPoint[] }) {
   const toPolyline = (vals: number[]) =>
     vals.map((v, i) => `${xOf(i)},${yOf(v)}`).join(' ')
 
-  // grid y-ticks
   const ticks = [0, Math.round(maxVal / 2), maxVal]
-
-  // x-axis labels: show up to 7 evenly spaced dates
   const labelStep = Math.max(1, Math.ceil(n / 7))
   const xLabels = data
-    .map((d, i) => ({ i, label: d.date.slice(5) })) // MM-DD
+    .map((d, i) => ({ i, label: d.date.slice(5) }))
     .filter((_, i) => i % labelStep === 0 || i === n - 1)
 
   return (
-    <svg
-      viewBox={`0 0 ${W} ${H}`}
-      className={styles.chart}
-      aria-label="График сообщений"
-    >
-      {/* grid lines */}
+    <svg viewBox={`0 0 ${W} ${H}`} className={styles.chart} aria-label="График сообщений">
       {ticks.map(t => (
         <g key={t}>
-          <line
-            x1={PAD.left} y1={yOf(t)}
-            x2={PAD.left + iW} y2={yOf(t)}
-            stroke="var(--border)" strokeWidth="1"
-          />
-          <text
-            x={PAD.left - 6} y={yOf(t) + 4}
-            textAnchor="end"
-            fontSize="10"
-            fill="var(--text-muted)"
-          >
-            {t}
-          </text>
+          <line x1={PAD.left} y1={yOf(t)} x2={PAD.left + iW} y2={yOf(t)} stroke="var(--border)" strokeWidth="1" />
+          <text x={PAD.left - 6} y={yOf(t) + 4} textAnchor="end" fontSize="10" fill="var(--text-muted)">{t}</text>
         </g>
       ))}
-
-      {/* x labels */}
       {xLabels.map(({ i, label }) => (
-        <text
-          key={i}
-          x={xOf(i)} y={H - 6}
-          textAnchor="middle"
-          fontSize="10"
-          fill="var(--text-muted)"
-        >
-          {label}
-        </text>
+        <text key={i} x={xOf(i)} y={H - 6} textAnchor="middle" fontSize="10" fill="var(--text-muted)">{label}</text>
       ))}
-
-      {/* total line */}
-      <polyline
-        points={toPolyline(data.map(d => d.total))}
-        fill="none"
-        stroke="var(--accent)"
-        strokeWidth="2"
-        strokeLinejoin="round"
-      />
-
-      {/* banned line */}
-      <polyline
-        points={toPolyline(data.map(d => d.banned))}
-        fill="none"
-        stroke="var(--red)"
-        strokeWidth="2"
-        strokeLinejoin="round"
-      />
-
-      {/* dots — total */}
-      {data.map((d, i) => (
-        <circle key={`t${i}`} cx={xOf(i)} cy={yOf(d.total)} r="3" fill="var(--accent)" />
-      ))}
-
-      {/* dots — banned */}
-      {data.map((d, i) => (
-        <circle key={`b${i}`} cx={xOf(i)} cy={yOf(d.banned)} r="3" fill="var(--red)" />
-      ))}
+      <polyline points={toPolyline(data.map(d => d.total))} fill="none" stroke="var(--accent)" strokeWidth="2" strokeLinejoin="round" />
+      <polyline points={toPolyline(data.map(d => d.banned))} fill="none" stroke="var(--red)" strokeWidth="2" strokeLinejoin="round" />
+      {data.map((d, i) => <circle key={`t${i}`} cx={xOf(i)} cy={yOf(d.total)} r="3" fill="var(--accent)" />)}
+      {data.map((d, i) => <circle key={`b${i}`} cx={xOf(i)} cy={yOf(d.banned)} r="3" fill="var(--red)" />)}
     </svg>
   )
 }
@@ -128,9 +75,9 @@ function VerdictBadge({ label }: { label: string }) {
   )
 }
 
-// ── Records table ──────────────────────────────────────────────────────
+// ── Recent events table (no message text) ─────────────────────────────
 
-function RecordsTable({ records, title }: { records: CheckRecord[]; title: string }) {
+function EventsTable({ records, title }: { records: CheckRecord[]; title: string }) {
   return (
     <div className={styles.tableWrap}>
       <div className={styles.tableTitle}>{title}</div>
@@ -140,7 +87,6 @@ function RecordsTable({ records, title }: { records: CheckRecord[]; title: strin
         <table className={styles.table}>
           <thead>
             <tr>
-              <th>Текст</th>
               <th>Вердикт</th>
               <th>Уверенность</th>
               <th>Дата</th>
@@ -149,9 +95,6 @@ function RecordsTable({ records, title }: { records: CheckRecord[]; title: strin
           <tbody>
             {records.map(r => (
               <tr key={r.id}>
-                <td className={styles.textCell}>
-                  {r.text.length > 60 ? r.text.slice(0, 60) + '…' : r.text}
-                </td>
                 <td><VerdictBadge label={r.label} /></td>
                 <td>{Math.round(r.confidence * 100)}%</td>
                 <td className={styles.dateCell}>
@@ -170,18 +113,23 @@ function RecordsTable({ records, title }: { records: CheckRecord[]; title: strin
 
 // ── Main component ─────────────────────────────────────────────────────
 
-export function BotStatsTab() {
+interface BotStatsTabProps {
+  botId: string
+}
+
+export function BotStatsTab({ botId }: BotStatsTabProps) {
   const [records, setRecords] = useState<CheckRecord[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
+    if (!botId) return
     moderationApi
-      .getTelegramBotHistory({ limit: 200, offset: 0 })
+      .getTelegramBotHistory(botId, { limit: 200, offset: 0 })
       .then(data => setRecords(data ?? []))
       .catch(() => setError('Не удалось загрузить статистику'))
       .finally(() => setLoading(false))
-  }, [])
+  }, [botId])
 
   const dailyStats = useMemo<DayPoint[]>(() => {
     const map: Record<string, { total: number; banned: number }> = {}
@@ -212,7 +160,7 @@ export function BotStatsTab() {
       <div className={styles.chips}>
         <div className={styles.chip}>
           <span className={styles.chipValue}>{totalAll}</span>
-          <span className={styles.chipLabel}>Всего сообщений</span>
+          <span className={styles.chipLabel}>Всего проверок</span>
         </div>
         <div className={`${styles.chip} ${styles.chipRed}`}>
           <span className={styles.chipValue}>{totalBanned}</span>
@@ -233,7 +181,7 @@ export function BotStatsTab() {
           <div className={styles.legend}>
             <span className={styles.legendItem}>
               <span className={styles.legendDot} style={{ background: 'var(--accent)' }} />
-              Все сообщения
+              Все проверки
             </span>
             <span className={styles.legendItem}>
               <span className={styles.legendDot} style={{ background: 'var(--red)' }} />
@@ -241,7 +189,6 @@ export function BotStatsTab() {
             </span>
           </div>
         </div>
-
         {dailyStats.length === 0 ? (
           <div className={styles.empty}>Нет данных для отображения графика</div>
         ) : (
@@ -251,8 +198,8 @@ export function BotStatsTab() {
 
       {/* ── Tables ── */}
       <div className={styles.tables}>
-        <RecordsTable records={recentAll}    title="Последние сообщения" />
-        <RecordsTable records={recentBanned} title="Последние заблокированные" />
+        <EventsTable records={recentAll}    title="Последние проверки" />
+        <EventsTable records={recentBanned} title="Последние блокировки" />
       </div>
     </div>
   )

@@ -238,7 +238,7 @@ export function BotManagePage() {
         </button>
       </div>
 
-      {activeTab === 'stats' && <BotStatsTab />}
+      {activeTab === 'stats' && botId && <BotStatsTab botId={botId} />}
 
       {activeTab === 'settings' && <>
       {/* ── Status banner ── */}
