@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, useParams } from 'react-router-dom'
 import { moderationApi } from '@/api'
 import styles from './TelegramSetupPage.module.css'
 
@@ -26,7 +26,7 @@ const STEPS = [
         Открыть @{botUsername} →
       </a>
     ),
-  },  
+  },
   {
     num: '02',
     title: 'Дайте права администратора',
@@ -53,6 +53,8 @@ const STEPS = [
 
 export function TelegramSetupPage() {
   const navigate = useNavigate()
+  const { botId } = useParams<{ botId: string }>()
+
   const [token, setToken] = useState<string | null>(null)
   const [tokenLoading, setTokenLoading] = useState(true)
   const [tokenError, setTokenError] = useState<string | null>(null)
@@ -61,20 +63,15 @@ export function TelegramSetupPage() {
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
   useEffect(() => {
-    async function init() {
-      // If the bot is already active, skip setup and go to management page
-      try {
-        await moderationApi.getTelegramBotSettings()
-        navigate('/bots/telegram/manage', { replace: true })
-        return
-      } catch {
-        // Not connected yet — continue with setup wizard
-      }
+    if (!botId) {
+      navigate('/bots/telegram', { replace: true })
+      return
+    }
 
+    async function init() {
       try {
-        const data = await moderationApi.getTelegramBotToken()
+        const data = await moderationApi.getTelegramBotToken(botId!)
         setToken(data.token)
-        localStorage.setItem('sb_link_token', data.token)
       } catch {
         setTokenError('Не удалось загрузить токен. Обновите страницу.')
       } finally {
@@ -82,18 +79,18 @@ export function TelegramSetupPage() {
       }
     }
     init()
-  }, [navigate])
+  }, [botId, navigate])
 
   useEffect(() => {
-    if (!token) return
+    if (!botId || !token) return
 
     intervalRef.current = setInterval(async () => {
       try {
-        const status = await moderationApi.getTelegramBotStatus(token)
+        const status = await moderationApi.getTelegramBotStatus(botId)
         if (status.connected) {
           if (intervalRef.current) clearInterval(intervalRef.current)
           setConnected(true)
-          setTimeout(() => navigate('/bots/telegram/manage'), 1200)
+          setTimeout(() => navigate(`/bots/telegram/${botId}`), 1200)
         }
       } catch {
         // polling errors — ignore
@@ -103,7 +100,7 @@ export function TelegramSetupPage() {
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current)
     }
-  }, [token, navigate])
+  }, [botId, token, navigate])
 
   async function copyCommand() {
     if (!token) return
@@ -111,7 +108,6 @@ export function TelegramSetupPage() {
     try {
       await navigator.clipboard.writeText(text)
     } catch {
-      // fallback for HTTP / old browsers
       const el = document.createElement('textarea')
       el.value = text
       el.style.cssText = 'position:fixed;opacity:0'
@@ -127,7 +123,7 @@ export function TelegramSetupPage() {
   return (
     <div className={styles.page}>
       <header className={styles.header}>
-        <Link to="/" className={styles.backLink}>← Главная</Link>
+        <Link to="/bots/telegram" className={styles.backLink}>← Мои боты</Link>
         <div className={styles.headerCenter}>
           <div className={styles.platformBadge}>
             <span className={styles.platformIcon}>✈</span>

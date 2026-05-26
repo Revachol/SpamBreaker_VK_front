@@ -1,12 +1,10 @@
 import { useState, useEffect } from 'react'
+import { useParams, useNavigate } from 'react-router-dom'
 import styles from './BotManagePage.module.css'
 import { moderationApi } from '@/api'
 import { useAuthStore } from '@/store'
 import { BotStatsTab } from './BotStatsTab'
-// @ts-expect-error - Types are used indirectly through API calls
 import type { TelegramBotSettings, TelegramBotStatus, AdminInfo } from '@/types'
-
-const MOCK_CHAT_ID = '@your_group'
 
 type SensitivityLevel = 'soft' | 'medium' | 'strict'
 
@@ -65,6 +63,9 @@ function valueToLevel(v: number): SensitivityLevel {
 }
 
 export function BotManagePage() {
+  const { botId } = useParams<{ botId: string }>()
+  const navigate = useNavigate()
+
   const [sensitivityLevel, setSensitivityLevel] = useState<SensitivityLevel>('medium')
   const [sensitivitySaved, setSensitivitySaved] = useState(false)
   const [savingS, setSavingS] = useState(false)
@@ -75,8 +76,9 @@ export function BotManagePage() {
   const [bannedWords, setBannedWords] = useState<string[]>([])
   const [savingB, setSavingB] = useState(false)
   const [bannedSaved, setBannedSaved] = useState(false)
-  
+
   const [botStatus, setBotStatus] = useState<TelegramBotStatus | null>(null)
+  const [botName, setBotName] = useState<string>('')
 
   const [admins, setAdmins] = useState<AdminInfo[]>([])
   const [adminInput, setAdminInput] = useState('')
@@ -88,63 +90,58 @@ export function BotManagePage() {
 
   const { user } = useAuthStore()
 
-  // Загружаем настройки бота с бэкенда
   useEffect(() => {
-    async function fetchSettings() {
+    if (!botId) {
+      navigate('/bots/telegram', { replace: true })
+      return
+    }
+
+    async function fetchAll() {
       try {
         setLoading(true)
-        // Загружаем настройки
-        const settings = await moderationApi.getTelegramBotSettings()
+
+        const [bot, settings] = await Promise.all([
+          moderationApi.getTelegramBot(botId!),
+          moderationApi.getTelegramBotSettings(botId!),
+        ])
+
+        setBotName(bot.name)
         setSensitivityLevel(valueToLevel(settings.sensitivity))
         setBannedWords(settings.banned_words ?? [])
-        
-        // Загружаем статус бота
-        // TODO: Возможно, стоит объединить эти два эндпоинта
-        const token = localStorage.getItem('sb_link_token')
-        if (token) {
-          try {
-            const status = await moderationApi.getTelegramBotStatus(token)
-            setBotStatus(status)
-          } catch (statusErr) {
-            // Если не удалось получить статус бота, возможно токен истек
-            setError('Не удалось получить статус бота. Возможно, токен истек. Пройдите процесс подключения заново.')
-            console.error('Failed to fetch Telegram bot status:', statusErr)
-          }
-        } else {
-          // Если токен отсутствует, перенаправляем на страницу настройки
-          setError('Токен подключения не найден. Пройдите процесс подключения заново.')
-        }
+        setBotStatus({ connected: bot.status === 'active', chat_id: bot.chat_id, activated_at: bot.verified_at })
 
-        // Загружаем соадминов
         try {
-          const adminList = await moderationApi.getTelegramAdmins()
+          const adminList = await moderationApi.getTelegramAdmins(botId!)
           setAdmins(adminList ?? [])
         } catch {
-          // Соадмины — некритично, не блокируем UI
+          // соадмины некритичны
         }
-      } catch (err) {
-        setError('Не удалось загрузить настройки бота')
-        console.error('Failed to fetch Telegram bot settings:', err)
+      } catch (err: unknown) {
+        const status = (err as { status?: number })?.status
+        if (status === 404 || status === 403) {
+          navigate('/bots/telegram', { replace: true })
+        } else {
+          setError('Не удалось загрузить настройки бота')
+        }
       } finally {
         setLoading(false)
       }
     }
 
-    fetchSettings()
-  }, [])
+    fetchAll()
+  }, [botId, navigate])
 
   async function handleSaveSensitivity() {
+    if (!botId) return
     setSavingS(true)
     setSensitivitySaved(false)
     setError(null)
-    
     try {
-      await moderationApi.updateTelegramBotSettings({ sensitivity: LEVEL_THRESHOLD[sensitivityLevel] })
+      await moderationApi.updateTelegramBotSettings(botId, { sensitivity: LEVEL_THRESHOLD[sensitivityLevel] })
       setSensitivitySaved(true)
       setTimeout(() => setSensitivitySaved(false), 2500)
-    } catch (err) {
+    } catch {
       setError('Не удалось сохранить настройки чувствительности')
-      console.error('Failed to save sensitivity settings:', err)
     } finally {
       setSavingS(false)
     }
@@ -166,44 +163,40 @@ export function BotManagePage() {
   }
 
   async function handleSaveBanned() {
+    if (!botId) return
     setSavingB(true)
     setBannedSaved(false)
     setError(null)
-    
     try {
-      await moderationApi.updateTelegramBotSettings({ banned_words: bannedWords })
+      await moderationApi.updateTelegramBotSettings(botId, { banned_words: bannedWords })
       setBannedSaved(true)
       setTimeout(() => setBannedSaved(false), 2500)
-    } catch (err) {
+    } catch {
       setError('Не удалось сохранить список запрещённых слов')
-      console.error('Failed to save banned words:', err)
     } finally {
       setSavingB(false)
     }
   }
 
   async function handleDisableBot() {
+    if (!botId) return
     try {
-      await moderationApi.disableTelegramBot()
-      // Обновляем статус бота
-      setBotStatus(prev => prev ? {...prev, connected: false} : null)
-      // Показываем сообщение об успешном отключении
-      setError('Бот успешно отключен')
-      setTimeout(() => setError(null), 3000)
-    } catch (err) {
+      await moderationApi.disableTelegramBot(botId)
+      setBotStatus((prev) => prev ? { ...prev, connected: false } : null)
+    } catch {
       setError('Не удалось отключить бота')
-      console.error('Failed to disable Telegram bot:', err)
     }
   }
 
   async function handleAddAdmin() {
+    if (!botId) return
     const username = adminInput.trim()
     if (!username) return
     setAddingAdmin(true)
     setAdminError(null)
     setAdminSaved(false)
     try {
-      const updated = await moderationApi.addTelegramAdmin(username)
+      const updated = await moderationApi.addTelegramAdmin(botId, username)
       setAdmins(updated ?? [])
       setAdminInput('')
       setAdminSaved(true)
@@ -217,9 +210,10 @@ export function BotManagePage() {
   }
 
   async function handleRemoveAdmin(username: string) {
+    if (!botId) return
     setAdminError(null)
     try {
-      const updated = await moderationApi.removeTelegramAdmin(username)
+      const updated = await moderationApi.removeTelegramAdmin(botId, username)
       setAdmins(updated ?? [])
     } catch {
       setAdminError('Не удалось удалить администратора')
@@ -251,43 +245,25 @@ export function BotManagePage() {
       <div className={styles.statusBanner}>
         <div className={styles.statusDot} />
         <span className={styles.statusText}>
-          {loading ? 'Загрузка...' : botStatus?.connected ? 'Бот активен' : 'Бот не активен'} ·{' '}
-          <span className={styles.statusChat}>
-            {botStatus?.chat_id || MOCK_CHAT_ID}
-          </span>
+          {loading ? 'Загрузка...' : (
+            <>
+              {botName && <strong>{botName} · </strong>}
+              {botStatus?.connected ? 'Бот активен' : 'Бот не активен'}
+              {botStatus?.chat_id && (
+                <> · <span className={styles.statusChat}>{botStatus.chat_id}</span></>
+              )}
+            </>
+          )}
         </span>
-        {loading ? (
-          <span className={styles.statusNote}>Загрузка данных...</span>
-        ) : (
-          <span className={styles.statusNote}>
-            {botStatus?.connected
-              ? `Подключен ${botStatus.activated_at ? new Date(botStatus.activated_at).toLocaleString('ru-RU') : ''}`
-              : 'Бот еще не подключен'}
-          </span>
-        )}
+        <span className={styles.statusNote}>
+          {loading ? 'Загрузка данных...' : botStatus?.connected
+            ? `Подключен ${botStatus.activated_at ? new Date(botStatus.activated_at).toLocaleString('ru-RU') : ''}`
+            : 'Бот ещё не подключён'}
+        </span>
       </div>
-      
-      {error && (
-        <div className={styles.error}>
-          {error}
-        </div>
-      )}
-      
-      {error && !loading && (
-        <div className={styles.errorActions}>
-          <button
-            className={styles.retryBtn}
-            onClick={() => {
-              // Очищаем ошибку и перенаправляем на страницу настройки
-              setError(null)
-              window.location.href = '/bots/telegram'
-            }}
-          >
-            Переподключить бота
-          </button>
-        </div>
-      )}
-      
+
+      {error && <div className={styles.error}>{error}</div>}
+
       {!loading && (
         <>
           {/* ── Sensitivity ── */}
@@ -341,9 +317,7 @@ export function BotManagePage() {
             </div>
 
             <div className={styles.cardFooter}>
-              {sensitivitySaved && (
-                <span className={styles.savedMsg}>✓ Сохранено</span>
-              )}
+              {sensitivitySaved && <span className={styles.savedMsg}>✓ Сохранено</span>}
               <button
                 className={styles.saveBtn}
                 onClick={handleSaveSensitivity}
@@ -379,9 +353,7 @@ export function BotManagePage() {
                   {bannedWords.map((w) => (
                     <div key={w} className={styles.tag}>
                       <span>{w}</span>
-                      <button className={styles.tagRemove} onClick={() => handleRemoveWord(w)}>
-                        ×
-                      </button>
+                      <button className={styles.tagRemove} onClick={() => handleRemoveWord(w)}>×</button>
                     </div>
                   ))}
                 </div>
@@ -393,9 +365,7 @@ export function BotManagePage() {
             </div>
 
             <div className={styles.cardFooter}>
-              {bannedSaved && (
-                <span className={styles.savedMsg}>✓ Список сохранён</span>
-              )}
+              {bannedSaved && <span className={styles.savedMsg}>✓ Список сохранён</span>}
               <button
                 className={styles.saveBtn}
                 onClick={handleSaveBanned}

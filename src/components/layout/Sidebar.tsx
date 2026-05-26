@@ -3,7 +3,7 @@ import styles from './Sidebar.module.css'
 
 const NAV_ITEMS = [
   { to: '/check',                label: 'Проверка',   icon: '◈' },
-  { to: '/bots/telegram/manage',label: 'Telegram бот', icon: '✈' },
+  { to: '/bots/telegram',        label: 'Telegram боты', icon: '✈' },
   // { to: '/history',             label: 'История',    icon: '◫' },
   { to: '/docs',                label: 'API Docs',   icon: '◉' },
 ]

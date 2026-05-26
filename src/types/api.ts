@@ -39,6 +39,17 @@ export interface PaginationParams {
 }
 
 // ── Telegram Bot Types ────────────────────────────────────────────────
+
+export interface TelegramBot {
+  id: string
+  name: string
+  status: 'active' | 'inactive' | 'suspended'
+  chat_id?: string
+  token?: string
+  created_at: string // ISO 8601 UTC
+  verified_at?: string // ISO 8601 UTC
+}
+
 export interface TelegramBotToken {
   token: string
   expires_at: string // ISO 8601 UTC
