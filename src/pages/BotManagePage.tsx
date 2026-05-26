@@ -4,7 +4,7 @@ import styles from './BotManagePage.module.css'
 import { moderationApi } from '@/api'
 import { useAuthStore } from '@/store'
 import { BotStatsTab } from './BotStatsTab'
-import type { TelegramBotSettings, TelegramBotStatus, AdminInfo } from '@/types'
+import type { TelegramBotStatus, AdminInfo } from '@/types'
 
 type SensitivityLevel = 'soft' | 'medium' | 'strict'
 
