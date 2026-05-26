@@ -11,9 +11,9 @@ const MOCK_CHAT_ID = '@your_group'
 type SensitivityLevel = 'soft' | 'medium' | 'strict'
 
 const LEVEL_THRESHOLD: Record<SensitivityLevel, number> = {
-  soft: 30,
-  medium: 60,
-  strict: 85,
+  soft: 0.7,
+  medium: 0.3,
+  strict: 0.05,
 }
 
 const SENSITIVITY_LEVELS: {
@@ -59,8 +59,8 @@ const SENSITIVITY_LEVELS: {
 ]
 
 function valueToLevel(v: number): SensitivityLevel {
-  if (v < 45) return 'soft'
-  if (v < 73) return 'medium'
+  if (v >= 0.5) return 'soft'
+  if (v >= 0.175) return 'medium'
   return 'strict'
 }
 
