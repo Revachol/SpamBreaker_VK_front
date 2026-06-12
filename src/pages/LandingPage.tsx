@@ -1,5 +1,6 @@
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuthStore } from '@/store'
+import { useState } from 'react'
 import styles from './LandingPage.module.css'
 
 export function LandingPage() {
@@ -7,6 +8,7 @@ export function LandingPage() {
   const clearAuth = useAuthStore((s) => s.clearAuth)
   const user = useAuthStore((s) => s.user)
   const navigate = useNavigate()
+  const [isPlatformModalOpen, setIsPlatformModalOpen] = useState(false)
 
   function handleLogout() {
     clearAuth()
@@ -18,13 +20,16 @@ export function LandingPage() {
       {/* ── Navbar ── */}
       <header className={styles.nav}>
         <div className={styles.navLogo}>
-          <span className={styles.navLogoIcon}>🛡️</span>
+          <span className={styles.navLogoMark}>SB</span>
           <span className={styles.navLogoName}>SpamBreaker</span>
         </div>
         <div className={styles.navLinks}>
           <Link to="/docs" className={styles.navLink}>Docs</Link>
           {isAuthenticated ? (
             <>
+              <Link to="/bots/telegram/manage" className={styles.navLink}>
+                Личный кабинет
+              </Link>
               <span className={styles.navUser}>{user?.login ?? 'Аккаунт'}</span>
               <button className={styles.navBtnOutline} onClick={handleLogout}>
                 Выйти
@@ -41,131 +46,124 @@ export function LandingPage() {
 
       {/* ── Hero ── */}
       <section className={styles.hero}>
-        <div className={styles.heroBadge}>
-          <span className={styles.heroBadgeDot} />
-          ML-powered · TinyBERT + CrossAttention
-        </div>
-        <h1 className={styles.heroTitle}>
-          Анализ тональности<br />
-          <span className={styles.heroTitleAccent}>без лишнего шума</span>
-        </h1>
-        <p className={styles.heroDesc}>
-          SpamBreaker определяет позитив, нейтральный тон и негатив в тексте.
-          Подключите API в несколько строк или используйте готовые интеграции.
-        </p>
-        {!isAuthenticated && (
-          <div className={styles.heroCta}>
-            <Link to="/register" className={styles.ctaPrimary}>
-              Начать бесплатно <span className={styles.ctaArrow}>→</span>
-            </Link>
-            <Link to="/docs" className={styles.ctaSecondary}>Документация API</Link>
+        <div className={styles.heroGrid}>
+          <div className={styles.heroLeft}>
+            <div className={styles.heroBadge}>
+              <span className={styles.heroBadgeTag}>BETA</span>
+              <span>ML-фильтрация · TinyBERT · PyTorch</span>
+            </div>
+            <h1 className={styles.heroTitle}>
+              Анализ тональности<br />
+              <span className={styles.heroTitleAccent}>без лишнего шума</span>
+            </h1>
+            <p className={styles.heroDesc}>
+              SpamBreaker определяет позитив, нейтральный тон и негатив в тексте.
+              Подключите API в несколько строк или используйте готовые интеграции.
+            </p>
+            {!isAuthenticated && (
+              <div className={styles.heroCta}>
+                <Link to="/register" className={styles.ctaPrimary}>
+                  Начать бесплатно <span className={styles.ctaArrow}>→</span>
+                </Link>
+                <Link to="/docs" className={styles.ctaSecondary}>Документация API</Link>
+              </div>
+            )}
           </div>
-        )}
-        <div className={styles.heroCode}>
-          <div className={styles.heroCodeDots}><span /><span /><span /></div>
-          <pre className={styles.heroCodePre}>{`POST /api/v1/check
-Content-Type: application/json
 
-{ "text": "Сегодня отличный день!" }
-
-→ { "label": "positive", "confidence": 0.94 }`}</pre>
+          <div className={styles.heroRight}>
+            <div className={styles.terminal}>
+              <div className={styles.terminalHeader}>
+                <span className={styles.terminalHost}>spambreaker</span>
+                <span className={styles.terminalAt}>@</span>
+                <span className={styles.terminalPath}>api:~/v1/check</span>
+              </div>
+              <pre className={styles.terminalCmd}>{`$ curl -X POST /api/v1/check \\
+  -H "Content-Type: application/json" \\
+  -d '{
+    "text":    "Купить подписчиков дёшево!",
+    "chat_id": 42
+  }'`}</pre>
+              <div className={styles.terminalDivider} />
+              <pre className={styles.terminalOutput}>{`{
+  "label":      "negative",
+  "confidence": 0.97,
+  "action":     "deleted"
+}`}</pre>
+              <div className={styles.terminalFooter}>
+                <span className={styles.terminalStatus}>● SPAM</span>
+                <span className={styles.terminalStatusLabel}>сообщение удалено</span>
+                <div className={styles.terminalSpacer} />
+                <span className={styles.terminalPromptStr}>$</span>
+                <span className={styles.terminalCursor} />
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 
-      {/* ── Platform selection (authenticated) ── */}
-      {isAuthenticated ? (
-        <section className={styles.platforms}>
-          <div className={styles.platformsHeader}>
-            <div className={styles.platformsEyebrow}>Готовые решения</div>
-            <h2 className={styles.platformsTitle}>Выберите платформу</h2>
-            <p className={styles.platformsDesc}>
-              Подключите бота к вашему чату — он будет автоматически анализировать сообщения.
+      {/* ── Feature cards ── */}
+      <section className={styles.features}>
+        <div
+          className={styles.featureCard}
+          onClick={() => setIsPlatformModalOpen(true)}
+          style={{ cursor: 'pointer' }}
+        >
+          <div className={styles.featureIconWrap}><span className={styles.featureIcon}>⚡</span></div>
+          <div className={styles.featureContent}>
+            <div className={styles.featureTag}>Для команд</div>
+            <h2 className={styles.featureTitle}>Готовые решения</h2>
+            <p className={styles.featureDesc}>
+              Панель управления с историей проверок, статистикой и мониторингом состояния сервиса.
             </p>
+            <div className={styles.featureFooter}>
+              <span>Выбрать платформу</span>
+              <span className={styles.featureArrow}>→</span>
+            </div>
           </div>
-          <div className={styles.platformCards}>
-            {/* Telegram — active */}
-            <Link to="/setup/telegram" className={styles.platformCard}>
-              <div className={styles.platformCardTop}>
-                <div className={`${styles.platformIcon} ${styles.platformIconTg}`}>
-                  <TelegramIcon />
-                </div>
-                <div className={styles.platformBadge}>Доступно</div>
-              </div>
-              <h3 className={styles.platformName}>Telegram</h3>
-              <p className={styles.platformDesc}>
-                Добавьте бота в группу или канал. Он будет модерировать сообщения в реальном времени.
-              </p>
-              <div className={styles.platformFooter}>
-                <span>Подключить</span>
-                <span className={styles.platformArrow}>→</span>
-              </div>
-            </Link>
+        </div>
+        <Link to="/docs" className={`${styles.featureCard} ${styles.featureCardAlt}`}>
+          <div className={styles.featureIconWrap}><span className={styles.featureIcon}>{'</>'}</span></div>
+          <div className={styles.featureContent}>
+            <div className={`${styles.featureTag} ${styles.featureTagAlt}`}>Для разработчиков</div>
+            <h2 className={styles.featureTitle}>Подключить API</h2>
+            <p className={styles.featureDesc}>
+              REST API с JSON-ответами. Один POST-запрос — и вы получаете вердикт с вероятностями всех классов.
+            </p>
+            <div className={styles.featureFooter}>
+              <span>Читать документацию</span>
+              <span className={styles.featureArrow}>→</span>
+            </div>
+          </div>
+        </Link>
+      </section>
 
-            {/* VK — disabled */}
-            <div className={`${styles.platformCard} ${styles.platformCardDisabled}`}>
-              <div className={styles.platformCardTop}>
-                <div className={`${styles.platformIcon} ${styles.platformIconVk}`}>
-                  <VkIcon />
-                </div>
-                <div className={`${styles.platformBadge} ${styles.platformBadgeSoon}`}>Скоро</div>
-              </div>
-              <h3 className={styles.platformName}>ВКонтакте</h3>
-              <p className={styles.platformDesc}>
-                Интеграция с сообществами ВКонтакте находится в разработке.
-              </p>
-              <div className={styles.platformFooter}>
-                <span className={styles.platformFooterMuted}>Недоступно</span>
-              </div>
+      {/* ── How it works ── */}
+      <section className={styles.process}>
+        <div className={styles.processGrid}>
+          {[
+            {
+              num: '01',
+              label: 'Подключите бота',
+              desc: 'Добавьте в Telegram-группу и выполните /connect TOKEN — займёт меньше минуты',
+            },
+            {
+              num: '02',
+              label: 'Настройте правила',
+              desc: 'Порог токсичности, список стоп-слов, реакция при нарушении: уведомить, удалить или забанить',
+            },
+            {
+              num: '03',
+              label: 'Модерация работает',
+              desc: 'ML анализирует каждое сообщение автоматически, в реальном времени — без вашего участия',
+            },
+          ].map(({ num, label, desc }) => (
+            <div key={num} className={styles.processStep}>
+              <span className={styles.processNum}>{num}</span>
+              <div className={styles.processLabel}>{label}</div>
+              <div className={styles.processDesc}>{desc}</div>
             </div>
-          </div>
-        </section>
-      ) : (
-        /* ── Feature cards (guests) ── */
-        <section className={styles.features}>
-          <Link to="/dashboard" className={styles.featureCard}>
-            <div className={styles.featureIconWrap}><span className={styles.featureIcon}>⚡</span></div>
-            <div className={styles.featureContent}>
-              <div className={styles.featureTag}>Для команд</div>
-              <h2 className={styles.featureTitle}>Готовые решения</h2>
-              <p className={styles.featureDesc}>
-                Панель управления с историей проверок, статистикой и мониторингом состояния сервиса.
-              </p>
-              <div className={styles.featureFooter}>
-                <span>Открыть панель</span>
-                <span className={styles.featureArrow}>→</span>
-              </div>
-            </div>
-          </Link>
-          <Link to="/docs" className={`${styles.featureCard} ${styles.featureCardAlt}`}>
-            <div className={styles.featureIconWrap}><span className={styles.featureIcon}>{'</>'}</span></div>
-            <div className={styles.featureContent}>
-              <div className={`${styles.featureTag} ${styles.featureTagAlt}`}>Для разработчиков</div>
-              <h2 className={styles.featureTitle}>Подключить API</h2>
-              <p className={styles.featureDesc}>
-                REST API с JSON-ответами. Один POST-запрос — и вы получаете вердикт с вероятностями всех классов.
-              </p>
-              <div className={styles.featureFooter}>
-                <span>Читать документацию</span>
-                <span className={styles.featureArrow}>→</span>
-              </div>
-            </div>
-          </Link>
-        </section>
-      )}
-
-      {/* ── Stats ── */}
-      <section className={styles.stats}>
-        {[
-          { val: '3',      label: 'класса тональности' },
-          { val: '5 000',  label: 'символов максимум'  },
-          { val: '<200ms', label: 'медианное время'    },
-          { val: 'REST',   label: 'JSON API'           },
-        ].map(({ val, label }) => (
-          <div key={label} className={styles.statItem}>
-            <div className={styles.statVal}>{val}</div>
-            <div className={styles.statLabel}>{label}</div>
-          </div>
-        ))}
+          ))}
+        </div>
       </section>
 
       {/* ── Docs CTA ── */}
@@ -183,6 +181,61 @@ Content-Type: application/json
         <span>SpamBreaker · v0.0.1</span>
         <span className={styles.footerDim}>TinyBERT · Go · PostgreSQL</span>
       </footer>
+
+      {/* Platform Selection Modal */}
+      {isPlatformModalOpen && (
+        <div className={styles.modalOverlay} onClick={() => setIsPlatformModalOpen(false)}>
+          <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
+            <div className={styles.modalHeader}>
+              <h2>Выберите платформу</h2>
+              <button
+                className={styles.modalClose}
+                onClick={() => setIsPlatformModalOpen(false)}
+              >
+                ×
+              </button>
+            </div>
+            <div className={styles.modalBody}>
+              <div className={styles.platformCards}>
+                {/* Telegram — active */}
+                <Link to="/bots/telegram" className={styles.platformCard}>
+                  <div className={styles.platformCardTop}>
+                    <div className={`${styles.platformIcon} ${styles.platformIconTg}`}>
+                      <TelegramIcon />
+                    </div>
+                    <div className={styles.platformBadge}>Доступно</div>
+                  </div>
+                  <h3 className={styles.platformName}>Telegram</h3>
+                  <p className={styles.platformDesc}>
+                    Добавьте бота в группу или канал. Он будет модерировать сообщения в реальном времени.
+                  </p>
+                  <div className={styles.platformFooter}>
+                    <span>Подключить</span>
+                    <span className={styles.platformArrow}>→</span>
+                  </div>
+                </Link>
+
+                {/* VK — disabled */}
+                <div className={`${styles.platformCard} ${styles.platformCardDisabled}`}>
+                  <div className={styles.platformCardTop}>
+                    <div className={`${styles.platformIcon} ${styles.platformIconVk}`}>
+                      <VkIcon />
+                    </div>
+                    <div className={`${styles.platformBadge} ${styles.platformBadgeSoon}`}>Скоро</div>
+                  </div>
+                  <h3 className={styles.platformName}>ВКонтакте</h3>
+                  <p className={styles.platformDesc}>
+                    Интеграция с сообществами ВКонтакте находится в разработке.
+                  </p>
+                  <div className={styles.platformFooter}>
+                    <span className={styles.platformFooterMuted}>Недоступно</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

@@ -15,7 +15,7 @@ export interface CheckRecord {
   text: string
   label: VerdictLabel
   confidence: number
-  all_scores: AllScores
+  all_scores: AllScores | null
   created_at: string // ISO 8601 UTC
 }
 
@@ -36,4 +36,51 @@ export interface ApiError {
 export interface PaginationParams {
   limit?: number
   offset?: number
+}
+
+// ── Telegram Bot Types ────────────────────────────────────────────────
+
+export interface TelegramBot {
+  id: string
+  name: string
+  status: 'active' | 'inactive' | 'suspended'
+  chat_id?: string
+  token?: string
+  created_at: string // ISO 8601 UTC
+  verified_at?: string // ISO 8601 UTC
+}
+
+export interface TelegramBotToken {
+  token: string
+  expires_at: string // ISO 8601 UTC
+  created_at: string // ISO 8601 UTC
+}
+
+export interface TelegramBotStatus {
+  connected: boolean
+  chat_id?: string
+  activated_at?: string // ISO 8601 UTC
+}
+
+export interface TelegramBotSettings {
+  sensitivity: number
+  banned_words: string[]
+  enabled: boolean
+}
+
+export interface VerifyChatRequest {
+  chat_id: string
+}
+
+export interface VerifyChatResponse {
+  success: boolean
+  verified: boolean
+  message: string
+  activated: boolean
+  token?: string
+}
+
+export interface AdminInfo {
+  id: string
+  username: string
 }

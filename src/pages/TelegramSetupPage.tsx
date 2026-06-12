@@ -1,16 +1,9 @@
-import { useState, useEffect } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
-import { useAuthStore } from '@/store'
+import { useState, useEffect, useRef } from 'react'
+import { Link, useNavigate, useParams } from 'react-router-dom'
+import { moderationApi } from '@/api'
 import styles from './TelegramSetupPage.module.css'
 
-// Имитация получения токена с бэкенда.
-// TODO: заменить на реальный вызов GET /api/v1/bots/telegram/token
-function generateLinkToken(userId: string): string {
-  const base = btoa(`${userId}:${Date.now()}`).replace(/=/g, '').slice(0, 24)
-  return `SB-${base.toUpperCase()}`
-}
-
-const BOT_USERNAME = 'SpamBreakerBot' // TODO: вынести в env
+const BOT_USERNAME = import.meta.env.VITE_TELEGRAM_BOT_USERNAME || '@SpamBreakerOff_bot'
 
 const STEPS = [
   {
@@ -25,7 +18,7 @@ const STEPS = [
     ),
     action: (botUsername: string) => (
       <a
-        href={`https://t.me/${botUsername}`}
+        href={`https://t.me/SpamBreakerOff_bot`}
         target="_blank"
         rel="noreferrer"
         className={styles.stepLink}
@@ -42,58 +35,95 @@ const STEPS = [
         Боту необходимы права{' '}
         <strong>Удаление сообщений</strong> и{' '}
         <strong>Блокировка пользователей</strong>{' '}
-        для полноценной работы. Минимум — права на чтение сообщений.
+        для полноценной работы.
       </>
     ),
   },
   {
     num: '03',
-    title: 'Отправьте ключ активации',
+    title: 'Отправьте токен в группе',
     desc: (
       <>
-        Напишите боту в вашей группе следующую команду. Бот привяжет чат
-        к вашему аккаунту и начнёт работу.
+        Скопируйте команду ниже и отправьте её в чат группы. Бот получит её,
+        привяжется к вашему аккаунту и начнёт модерацию.
       </>
     ),
   },
 ]
 
 export function TelegramSetupPage() {
-  const user = useAuthStore((s) => s.user)
   const navigate = useNavigate()
+  const { botId } = useParams<{ botId: string }>()
+
+  const [token, setToken] = useState<string | null>(null)
+  const [tokenLoading, setTokenLoading] = useState(true)
+  const [tokenError, setTokenError] = useState<string | null>(null)
   const [copied, setCopied] = useState(false)
-  const [confirming, setConfirming] = useState(false)
+  const [connected, setConnected] = useState(false)
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
-  const linkToken = user ? generateLinkToken(user.id) : '...'
-  const linkCommand = `/link ${linkToken}`
-
-  // Сохраняем токен в localStorage чтобы страница управления знала что делать
   useEffect(() => {
-    if (linkToken !== '...') {
-      localStorage.setItem('sb_link_token', linkToken)
+    if (!botId) {
+      navigate('/bots/telegram', { replace: true })
+      return
     }
-  }, [linkToken])
 
-  function handleCopy() {
-    navigator.clipboard.writeText(linkCommand).then(() => {
-      setCopied(true)
-      setTimeout(() => setCopied(false), 2000)
-    })
-  }
+    async function init() {
+      try {
+        const data = await moderationApi.getTelegramBotToken(botId!)
+        setToken(data.token)
+      } catch {
+        setTokenError('Не удалось загрузить токен. Обновите страницу.')
+      } finally {
+        setTokenLoading(false)
+      }
+    }
+    init()
+  }, [botId, navigate])
 
-  async function handleConfirm() {
-    setConfirming(true)
-    // TODO: GET /api/v1/bots/telegram/status?token=... чтобы проверить что бот привязался
-    // Пока просто переходим на страницу управления
-    await new Promise((r) => setTimeout(r, 800))
-    navigate('/bots/telegram/manage')
+  useEffect(() => {
+    if (!botId || !token) return
+
+    intervalRef.current = setInterval(async () => {
+      try {
+        const status = await moderationApi.getTelegramBotStatus(botId)
+        if (status.connected) {
+          if (intervalRef.current) clearInterval(intervalRef.current)
+          setConnected(true)
+          setTimeout(() => navigate(`/bots/telegram/${botId}`), 1200)
+        }
+      } catch {
+        // polling errors — ignore
+      }
+    }, 3000)
+
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current)
+    }
+  }, [botId, token, navigate])
+
+  async function copyCommand() {
+    if (!token) return
+    const text = `/connect ${token}`
+    try {
+      await navigator.clipboard.writeText(text)
+    } catch {
+      const el = document.createElement('textarea')
+      el.value = text
+      el.style.cssText = 'position:fixed;opacity:0'
+      document.body.appendChild(el)
+      el.select()
+      document.execCommand('copy')
+      document.body.removeChild(el)
+    }
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
   }
 
   return (
     <div className={styles.page}>
-      {/* Header */}
       <header className={styles.header}>
-        <Link to="/" className={styles.backLink}>← Главная</Link>
+        <Link to="/bots/telegram" className={styles.backLink}>← Мои боты</Link>
         <div className={styles.headerCenter}>
           <div className={styles.platformBadge}>
             <span className={styles.platformIcon}>✈</span>
@@ -112,7 +142,6 @@ export function TelegramSetupPage() {
           </p>
         </div>
 
-        {/* Steps */}
         <div className={styles.steps}>
           {STEPS.map((step, i) => (
             <div key={step.num} className={styles.step}>
@@ -124,26 +153,36 @@ export function TelegramSetupPage() {
                 <div className={styles.stepTitle}>{step.title}</div>
                 <div className={styles.stepDesc}>{step.desc}</div>
 
-                {/* Step 1 action */}
                 {i === 0 && step.action && (
                   <div className={styles.stepAction}>
                     {step.action(BOT_USERNAME)}
                   </div>
                 )}
 
-                {/* Step 3 — token block */}
                 {i === 2 && (
                   <div className={styles.tokenBlock}>
                     <div className={styles.tokenHeader}>
-                      <span className={styles.tokenLabel}>Команда для отправки в группу</span>
-                      <button className={styles.copyBtn} onClick={handleCopy}>
+                      <span className={styles.tokenLabel}>КОМАНДА ДЛЯ ОТПРАВКИ В ЧАТ</span>
+                      <button className={styles.copyBtn} onClick={copyCommand} disabled={!token}>
                         {copied ? '✓ Скопировано' : 'Копировать'}
                       </button>
                     </div>
-                    <pre className={styles.tokenCode}>{linkCommand}</pre>
+                    {tokenLoading ? (
+                      <div className={styles.tokenCode} style={{ color: 'var(--text-muted)' }}>
+                        Загрузка токена…
+                      </div>
+                    ) : tokenError ? (
+                      <div className={styles.tokenCode} style={{ color: 'var(--red)', fontSize: '13px' }}>
+                        {tokenError}
+                      </div>
+                    ) : (
+                      <div className={styles.tokenCode}>
+                        /connect {token}
+                      </div>
+                    )}
                     <div className={styles.tokenNote}>
-                      ⚠️ Ключ привязан к вашему аккаунту. Не передавайте его третьим лицам.
-                      Токен действителен 24 часа.
+                      ⚠️ Отправьте эту команду прямо в чат группы (не боту в личку).
+                      Бот должен быть добавлен как администратор.
                     </div>
                   </div>
                 )}
@@ -152,19 +191,27 @@ export function TelegramSetupPage() {
           ))}
         </div>
 
-        {/* Confirm button */}
         <div className={styles.confirmBlock}>
-          <div className={styles.confirmNote}>
-            После того как отправили команду боту — нажмите кнопку ниже.
-          </div>
-          <button
-            className={styles.confirmBtn}
-            onClick={handleConfirm}
-            disabled={confirming}
-          >
-            {confirming && <span className={styles.spinner} />}
-            {confirming ? 'Проверяем подключение…' : '✓ Я подключил бота'}
-          </button>
+          {connected ? (
+            <>
+              <div className={styles.connectedIcon}>✓</div>
+              <div className={styles.confirmNote} style={{ color: 'var(--accent)', fontWeight: 600 }}>
+                Бот подключён! Переходим на страницу управления…
+              </div>
+            </>
+          ) : (
+            <>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <span className={styles.spinner} style={{ borderColor: 'rgba(255,255,255,.15)', borderTopColor: 'var(--accent)' }} />
+                <span className={styles.confirmNote}>
+                  Ожидаем подключения бота…
+                </span>
+              </div>
+              <div className={styles.confirmNote} style={{ fontSize: '12px', opacity: 0.6 }}>
+                Отправьте команду в группу — страница обновится автоматически
+              </div>
+            </>
+          )}
         </div>
       </div>
     </div>
