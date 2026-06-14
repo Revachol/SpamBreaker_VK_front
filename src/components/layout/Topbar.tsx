@@ -3,11 +3,14 @@ import { useAuthStore } from '@/store'
 import styles from './Topbar.module.css'
 
 const PAGE_TITLES: Record<string, string> = {
-  '/check':           'Проверка текста',
-  '/history':         'История проверок',
-  '/docs':            'API Docs',
-  '/bots/telegram':   'Подключение Telegram',
-  '/bots/telegram/manage': 'Управление ботом',
+  '/accounts': 'Аккаунты',
+  '/bots/telegram': 'Боты Telegram',
+  '/bots/vk': 'Боты Vkontakte',
+  '/api': 'АПИ',
+  '/stats': 'Статистика',
+  '/check': 'Статистика',
+  '/history': 'История проверок',
+  '/docs': 'API Docs',
 }
 
 export function Topbar() {
@@ -15,7 +18,7 @@ export function Topbar() {
   const navigate = useNavigate()
   const { isAuthenticated, user, clearAuth } = useAuthStore()
 
-  const title = PAGE_TITLES[pathname] ?? 'SpamBreaker'
+  const title = PAGE_TITLES[pathname] ?? (pathname.startsWith('/bots/') ? 'Управление ботом' : 'SpamBreaker')
 
   function handleLogout() {
     clearAuth()
@@ -34,7 +37,7 @@ export function Topbar() {
           <div className={styles.userBlock}>
             <span
               className={styles.userName}
-              onClick={() => navigate('/check')}
+              onClick={() => navigate('/accounts')}
               style={{ cursor: 'pointer' }}
             >
               {user?.login ?? 'Аккаунт'}

@@ -21,6 +21,7 @@ export interface CheckRecord {
 
 export interface CheckRequest {
   text: string
+  chat_id?: string
 }
 
 export interface HealthResponse {
@@ -38,29 +39,30 @@ export interface PaginationParams {
   offset?: number
 }
 
-// ── Telegram Bot Types ────────────────────────────────────────────────
+// ── Platform / user account types ─────────────────────────────────────
 
-export interface TelegramBot {
+export type ServicePlatform = 'telegram' | 'vk'
+export type UserBotRole = 'admin' | 'moderator'
+
+export interface ModeratorAccount {
   id: string
-  name: string
-  status: 'active' | 'inactive' | 'suspended'
-  chat_id?: string
-  token?: string
-  created_at: string // ISO 8601 UTC
-  verified_at?: string // ISO 8601 UTC
+  account_id: string
+  platform: string
+  verified_at?: string
 }
 
-export interface TelegramBotToken {
+export interface ModeratorAccountInfo extends ModeratorAccount {
+  moderator_id: string
+  token_expires_at?: string
+}
+
+export interface VerificationToken {
   token: string
-  expires_at: string // ISO 8601 UTC
-  created_at: string // ISO 8601 UTC
+  expires_at: string
+  instruction?: string
 }
 
-export interface TelegramBotStatus {
-  connected: boolean
-  chat_id?: string
-  activated_at?: string // ISO 8601 UTC
-}
+// ── Bot Types ────────────────────────────────────────────────────────
 
 export interface TelegramBotSettings {
   sensitivity: number
@@ -68,19 +70,36 @@ export interface TelegramBotSettings {
   enabled: boolean
 }
 
-export interface VerifyChatRequest {
-  chat_id: string
+export interface UserBot {
+  id: string
+  name: string
+  external_id?: string
+  own_acc_id?: string
+  owner_id?: string
+  created_at?: string
+  role?: UserBotRole
+  platform?: string
+  status?: string
+  updated_at?: string
+  verified_at?: string
 }
 
-export interface VerifyChatResponse {
-  success: boolean
-  verified: boolean
-  message: string
-  activated: boolean
-  token?: string
+export interface BotInfo {
+  id: string
+  name: string
+  external_id?: string
+  own_acc_id?: string
+  owner_id?: string
+  platform?: string
+  status?: string
+  created_at?: string
+  updated_at?: string
+  verified_at?: string
 }
 
 export interface AdminInfo {
   id: string
   username: string
+  role?: string
+  created_at?: string
 }

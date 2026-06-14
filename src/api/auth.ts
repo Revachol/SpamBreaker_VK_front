@@ -15,7 +15,6 @@ export interface AuthResponse {
   token: string
   id: string
   username: string
-  role: string
 }
 
 export const authApi = {

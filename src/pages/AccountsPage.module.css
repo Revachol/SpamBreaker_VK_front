@@ -2,7 +2,7 @@
   display: flex;
   flex-direction: column;
   gap: 22px;
-  max-width: 980px;
+  max-width: 920px;
 }
 
 .togglebar {
@@ -18,9 +18,9 @@
 .toggleBtn {
   display: inline-flex;
   align-items: center;
-  justify-content: center;
   gap: 8px;
   min-width: 136px;
+  justify-content: center;
   border: 0;
   background: transparent;
   color: var(--text-muted);
@@ -39,7 +39,7 @@
 }
 
 .serviceIcon,
-.rowIcon {
+.itemIcon {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -62,9 +62,9 @@
 
 .header {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
-  gap: 18px;
+  gap: 16px;
 }
 
 .title {
@@ -73,36 +73,44 @@
   color: var(--text);
 }
 
-.controls {
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-  justify-content: flex-end;
+.addBtn {
+  background: var(--accent);
+  color: #0a0c10;
+  border: 0;
+  border-radius: var(--radius-sm);
+  padding: 9px 18px;
+  font-size: 12px;
+  font-weight: 800;
 }
 
-.search,
-.select {
+.addBtn:hover:not(:disabled) { opacity: 0.86; }
+
+.addBtn:disabled { opacity: 0.45; cursor: not-allowed; }
+
+.section {
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  color: var(--text);
-  outline: none;
-  padding: 10px 12px;
-  font-size: 13px;
+  border-radius: var(--radius-md);
+  padding: 22px;
 }
 
-.search {
-  width: 260px;
+.sectionHeader {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
 }
 
-.search:focus,
-.select:focus {
-  border-color: var(--accent);
-  box-shadow: 0 0 0 3px var(--accent-dim);
+.sectionTitle {
+  font-size: 16px;
+  font-weight: 700;
+  color: #fff;
 }
 
-.select {
-  min-width: 150px;
+.sectionSub,
+.meta {
+  color: var(--text-muted);
+  font-size: 12px;
 }
 
 .list {
@@ -111,86 +119,65 @@
   gap: 10px;
 }
 
-.row {
+.item {
   display: flex;
   align-items: center;
   gap: 14px;
-  width: 100%;
-  text-align: left;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  padding: 15px 18px;
-  color: var(--text);
-  transition: border-color 0.15s, background 0.15s;
-}
-
-.row:hover {
+  min-width: 0;
   background: var(--panel);
-  border-color: var(--border-bright);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 14px 16px;
 }
 
-.rowMain {
-  display: flex;
-  flex-direction: column;
+.itemMain {
   min-width: 0;
   flex: 1;
 }
 
-.botName {
-  color: #fff;
-  font-size: 15px;
-  font-weight: 800;
+.tokenRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.token,
+.accountName {
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 700;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.botMeta {
-  color: var(--text-muted);
-  font-size: 12px;
-  margin-top: 2px;
+.token {
+  font-family: var(--font-mono);
+  color: var(--accent);
 }
 
-.status {
-  color: var(--text-dim);
+.copyBtn {
+  background: transparent;
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
-  padding: 5px 10px;
+  color: var(--text-dim);
+  padding: 7px 12px;
   font-size: 11px;
-  font-weight: 800;
+  font-weight: 700;
   white-space: nowrap;
 }
 
-.statusActive {
-  color: var(--accent);
-  border-color: rgba(0, 229, 160, 0.24);
-  background: var(--accent-dim);
-}
-
-.statusDisabled {
-  color: var(--amber);
-  border-color: rgba(245, 166, 35, 0.24);
-  background: var(--amber-dim);
-}
-
-.statusInactive {
-  color: var(--red);
-  border-color: rgba(255, 95, 109, 0.24);
-  background: var(--red-dim);
-}
-
-.statusUnavailable {
-  color: var(--red);
-  border-color: rgba(255, 95, 109, 0.24);
-  background: var(--red-dim);
+.copyBtn:hover {
+  color: var(--text);
+  border-color: var(--border-bright);
 }
 
 .empty {
   color: var(--text-muted);
   border: 1px dashed var(--border);
   border-radius: var(--radius-sm);
-  padding: 42px 20px;
+  padding: 22px;
   text-align: center;
 }
 
@@ -203,11 +190,10 @@
   font-size: 12px;
 }
 
-@media (max-width: 720px) {
+@media (max-width: 640px) {
   .togglebar,
-  .controls,
-  .search,
-  .select {
+  .header,
+  .tokenRow {
     width: 100%;
   }
 
@@ -217,12 +203,8 @@
   }
 
   .header,
-  .row {
+  .tokenRow {
     align-items: stretch;
     flex-direction: column;
-  }
-
-  .status {
-    align-self: flex-start;
   }
 }

@@ -181,7 +181,7 @@ export function DashboardPage() {
       <section className={styles.checkPanel}>
         <div className={styles.sectionHeader}>
           <h2 className={styles.sectionTitle}>Проверить текст</h2>
-          <span className={styles.sectionSub}>POST /api/v1/check</span>
+          <span className={styles.sectionSub}>POST /api/bot/v1/telegram/check</span>
         </div>
 
         <textarea

@@ -215,6 +215,77 @@
   line-height: 1.6;
 }
 
+.infoGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.infoField {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+}
+
+.infoLabel {
+  color: var(--text-muted);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.infoValue {
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 700;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.historyList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.historyItem {
+  display: grid;
+  grid-template-columns: 112px minmax(0, 1fr) 170px;
+  gap: 12px;
+  align-items: center;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 11px 14px;
+}
+
+.historyVerdict {
+  color: var(--accent);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.historyText {
+  color: var(--text);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.historyDate {
+  color: var(--text-muted);
+  font-size: 11px;
+  text-align: right;
+}
+
 .cardFooter {
   display: flex;
   align-items: center;
@@ -402,6 +473,51 @@
   gap: 8px;
 }
 
+.adminsTable {
+  display: flex;
+  flex-direction: column;
+  overflow-x: auto;
+}
+
+.adminsHead,
+.adminsRow {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr 120px 44px;
+  gap: 12px;
+  align-items: center;
+  min-width: 620px;
+}
+
+.adminsHead {
+  color: var(--text-muted);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 0 12px 8px;
+}
+
+.adminsRow {
+  color: var(--text);
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 11px 12px;
+  margin-bottom: 8px;
+}
+
+.adminId,
+.adminName {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.adminName {
+  color: var(--accent);
+  font-weight: 800;
+}
+
 .adminTag {
   display: inline-flex;
   align-items: center;
@@ -436,6 +552,9 @@
   border: 1px solid rgba(255,95,109,.2);
   border-radius: var(--radius-lg);
   padding: 20px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
 }
 
 .dangerTitle {
@@ -452,6 +571,15 @@
   align-items: center;
   justify-content: space-between;
   gap: 16px;
+}
+
+.dangerBlock {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding-bottom: 18px;
+  border-bottom: 1px solid rgba(255,95,109,.14);
 }
 
 .dangerLabel {
@@ -474,6 +602,43 @@
   flex-shrink: 0;
 }
 .dangerBtn:hover { background: var(--red-dim); }
+.dangerBtn:disabled { opacity: 0.45; cursor: not-allowed; }
+
+.statusTogglebar {
+  display: inline-flex;
+  gap: 4px;
+  padding: 4px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  flex-shrink: 0;
+}
+
+.statusToggleBtn {
+  border: 0;
+  background: transparent;
+  color: var(--text-muted);
+  border-radius: calc(var(--radius-md) - 2px);
+  padding: 8px 16px;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 800;
+  transition: color 0.15s, background 0.15s, opacity 0.15s;
+}
+
+.statusToggleBtn:hover:not(:disabled) {
+  color: var(--text);
+}
+
+.statusToggleBtn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.statusToggleActive {
+  background: var(--accent);
+  color: #0a0c10;
+}
 
 /* ── Spinner ── */
 .spinner {
@@ -526,4 +691,22 @@
 @media (max-width: 768px) {
   .sensitivityLevels { grid-template-columns: 1fr; }
   .levelExamples { grid-template-columns: 1fr; }
+  .infoGrid { grid-template-columns: 1fr; }
+  .dangerBlock,
+  .dangerRow {
+    align-items: stretch;
+    flex-direction: column;
+  }
+  .statusTogglebar {
+    width: 100%;
+  }
+  .statusToggleBtn {
+    flex: 1;
+  }
+  .historyItem {
+    grid-template-columns: 1fr;
+  }
+  .historyDate {
+    text-align: left;
+  }
 }

@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import styles from './DocsPage.module.css'
-import {Link} from "react-router-dom"
+import { Link, useNavigate } from 'react-router-dom'
+import { useAuthStore } from '@/store'
 
 /* ── Types ── */
 type Method = 'GET' | 'POST'
@@ -53,10 +54,10 @@ const ENDPOINTS: Endpoint[] = [
   {
     id: 'check',
     method: 'POST',
-    path: '/api/v1/check',
+    path: '/api/bot/v1/{service}/check',
     summary: 'Проверить текст',
     description:
-      'Основной эндпоинт. Отправляет текст в ML-сервис, получает вердикт тональности, сохраняет запись в PostgreSQL и возвращает результат. Ошибка сохранения не блокирует ответ клиенту.',
+      'Основной эндпоинт. Отправляет текст в ML-сервис для выбранного сервиса (telegram или vk), получает вердикт тональности и возвращает результат.',
     paramKind: 'body',
     params: [
       {
@@ -69,7 +70,7 @@ const ENDPOINTS: Endpoint[] = [
     examples: [
       {
         label: 'cURL',
-        code: `curl -X POST "http://localhost:8080/api/v1/check" \\\n  -H "Content-Type: application/json" \\\n  -d '{"text": "Сегодня отличный день!"}'`,
+        code: `curl -X POST "http://localhost:8080/api/bot/v1/telegram/check" \\\n  -H "Content-Type: application/json" \\\n  -d '{"text": "Сегодня отличный день!"}'`,
       },
       {
         label: 'Response 200',
@@ -173,9 +174,18 @@ const STATUS_COLOR: Record<number, string> = {
 
 /* ── Component ── */
 export function DocsPage() {
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated)
+  const clearAuth = useAuthStore((s) => s.clearAuth)
+  const user = useAuthStore((s) => s.user)
+  const navigate = useNavigate()
   const [openIds, setOpenIds] = useState<Set<string>>(new Set(['health']))
   const [activeTab, setActiveTab] = useState<Record<string, number>>({})
   const [copied, setCopied] = useState<string | null>(null)
+
+  function handleLogout() {
+    clearAuth()
+    navigate('/', { replace: true })
+  }
 
   function toggle(id: string) {
     setOpenIds((prev) => {
@@ -201,8 +211,34 @@ export function DocsPage() {
   }
 
   return (
-    <div className={styles.page}>
-      <Link to="/" className={styles.backLink}>← Главная</Link>
+    <div className={styles.docsShell}>
+      <header className={styles.nav}>
+        <Link to="/" className={styles.navLogo}>
+          <span className={styles.navLogoMark}>SB</span>
+          <span className={styles.navLogoName}>SpamBreaker</span>
+        </Link>
+        <div className={styles.navLinks}>
+          <Link to="/docs" className={styles.navLink}>Docs</Link>
+          {isAuthenticated ? (
+            <>
+              <Link to="/accounts" className={styles.navLink}>
+                Личный кабинет
+              </Link>
+              <span className={styles.navUser}>{user?.login ?? 'Аккаунт'}</span>
+              <button className={styles.navBtnOutline} onClick={handleLogout}>
+                Выйти
+              </button>
+            </>
+          ) : (
+            <>
+              <Link to="/login" className={styles.navBtnOutline}>Войти</Link>
+              <Link to="/register" className={styles.navBtnFill}>Регистрация</Link>
+            </>
+          )}
+        </div>
+      </header>
+
+      <main className={styles.page}>
       {/* Hero */}
       <div className={styles.hero}>
         <div className={styles.eyebrow}>
@@ -413,6 +449,12 @@ export function DocsPage() {
           )
         })}
       </section>
+
+      <footer className={styles.footer}>
+        <span>SpamBreaker · v0.0.1</span>
+        <span className={styles.footerDim}>TinyBERT · Go · PostgreSQL</span>
+      </footer>
+      </main>
     </div>
   )
 }

@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { AppLayout } from '@/components/layout/AppLayout'
 import { LandingPage } from '@/pages/LandingPage'
 import { DocsPage } from '@/pages/DocsPage'
@@ -6,7 +6,7 @@ import { DashboardPage } from '@/pages/DashboardPage'
 import { HistoryPage } from '@/pages/HistoryPage'
 import { LoginPage } from '@/pages/LoginPage'
 import { RegisterPage } from '@/pages/RegisterPage'
-import { TelegramSetupPage } from '@/pages/TelegramSetupPage'
+import { AccountsPage } from '@/pages/AccountsPage'
 import { BotListPage } from '@/pages/BotListPage'
 import { BotManagePage } from '@/pages/BotManagePage'
 import { NotFoundPage } from '@/pages/NotFoundPage'
@@ -23,18 +23,17 @@ export function App() {
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/docs" element={<DocsPage />} />
 
-        {/* ── Защищённые: bot setup (без sidebar layout) ── */}
-        <Route element={<ProtectedRoute />}>
-          <Route path="/bots/telegram/:botId/setup" element={<TelegramSetupPage />} />
-        </Route>
-
         {/* ── Защищённые: с sidebar layout ── */}
         <Route element={<ProtectedRoute />}>
           <Route element={<AppLayout />}>
-            <Route path="/check" element={<DashboardPage />} />
+            <Route path="/accounts" element={<AccountsPage />} />
+            <Route path="/bots" element={<Navigate to="/bots/telegram" replace />} />
+            <Route path="/bots/:service" element={<BotListPage />} />
+            <Route path="/bots/:service/:botId" element={<BotManagePage />} />
+            <Route path="/api" element={<Navigate to="/docs" replace />} />
+            <Route path="/stats" element={<DashboardPage />} />
+            <Route path="/check" element={<Navigate to="/stats" replace />} />
             <Route path="/history" element={<HistoryPage />} />
-            <Route path="/bots/telegram" element={<BotListPage />} />
-            <Route path="/bots/telegram/:botId" element={<BotManagePage />} />
           </Route>
         </Route>
 

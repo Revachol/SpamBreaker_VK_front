@@ -27,7 +27,7 @@ export function LandingPage() {
           <Link to="/docs" className={styles.navLink}>Docs</Link>
           {isAuthenticated ? (
             <>
-              <Link to="/bots/telegram/manage" className={styles.navLink}>
+              <Link to="/accounts" className={styles.navLink}>
                 Личный кабинет
               </Link>
               <span className={styles.navUser}>{user?.login ?? 'Аккаунт'}</span>
@@ -77,7 +77,7 @@ export function LandingPage() {
                 <span className={styles.terminalAt}>@</span>
                 <span className={styles.terminalPath}>api:~/v1/check</span>
               </div>
-              <pre className={styles.terminalCmd}>{`$ curl -X POST /api/v1/check \\
+              <pre className={styles.terminalCmd}>{`$ curl -X POST /api/bot/v1/telegram/check \\
   -H "Content-Type: application/json" \\
   -d '{
     "text":    "Купить подписчиков дёшево!",

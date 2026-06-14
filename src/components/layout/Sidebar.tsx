@@ -2,10 +2,10 @@ import { NavLink } from 'react-router-dom'
 import styles from './Sidebar.module.css'
 
 const NAV_ITEMS = [
-  { to: '/check',                label: 'Проверка',   icon: '◈' },
-  { to: '/bots/telegram',        label: 'Telegram боты', icon: '✈' },
-  // { to: '/history',             label: 'История',    icon: '◫' },
-  { to: '/docs',                label: 'API Docs',   icon: '◉' },
+  { to: '/accounts',      label: 'Аккаунты',   icon: '◎' },
+  { to: '/bots/telegram', label: 'Боты',       icon: '◈' },
+  { to: '/api',           label: 'АПИ',        icon: '◉' },
+  { to: '/stats',         label: 'Статистика', icon: '◫' },
 ]
 
 export function Sidebar() {
