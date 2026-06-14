@@ -11,14 +11,10 @@ export interface RegisterRequest {
   confirm_password: string
 }
 
-// Поправить под реальную схему ответа бэкенда если отличается
 export interface AuthResponse {
   token: string
-  user?: {
-    id: string
-    username: string
-    role: string
-  }
+  id: string
+  username: string
 }
 
 export const authApi = {

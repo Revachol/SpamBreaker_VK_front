@@ -3,7 +3,7 @@ import { create } from 'zustand'
 interface User {
   id: string
   login: string
-  role: string
+  role?: string
 }
 
 interface AuthState {

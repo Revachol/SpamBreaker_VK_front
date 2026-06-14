@@ -14,7 +14,7 @@ export function LoginPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  if (isAuthenticated) return <Navigate to="/dashboard" replace />
+  if (isAuthenticated) return <Navigate to="/" replace />
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -25,8 +25,8 @@ export function LoginPage() {
 
     try {
       const res = await authApi.login({ username: username.trim(), password })
-      setAuth(res.token, res.user ? { ...res.user, login: res.user.username } : null)
-      navigate('/dashboard', { replace: true })
+      setAuth(res.token, { id: res.id, login: res.username })
+      navigate('/accounts', { replace: true })
     } catch (err) {
       if (err instanceof ApiClientError) {
         const body = err.body as { error?: string }

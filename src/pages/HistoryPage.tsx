@@ -62,13 +62,13 @@ export function HistoryPage() {
                 <Badge label={rec.label} />
                 <ConfidenceBar value={rec.confidence} />
                 <span className={styles.cellScore}>
-                  {Math.round(rec.all_scores.positive * 100)}%
+                  {Math.round((rec.all_scores?.positive ?? 0) * 100)}%
                 </span>
                 <span className={styles.cellScore}>
-                  {Math.round(rec.all_scores.neutral * 100)}%
+                  {Math.round((rec.all_scores?.neutral ?? 0) * 100)}%
                 </span>
                 <span className={styles.cellScore}>
-                  {Math.round(rec.all_scores.negative * 100)}%
+                  {Math.round((rec.all_scores?.negative ?? 0) * 100)}%
                 </span>
                 <span className={styles.cellDate}>
                   {new Date(rec.created_at).toLocaleString('ru-RU')}

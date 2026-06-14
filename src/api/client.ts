@@ -57,4 +57,10 @@ export const apiClient = {
 
   post: <T>(path: string, body: unknown, init?: RequestInit) =>
     request<T>(path, { ...init, method: 'POST', body: JSON.stringify(body) }),
+
+  put: <T>(path: string, body: unknown, init?: RequestInit) =>
+    request<T>(path, { ...init, method: 'PUT', body: JSON.stringify(body) }),
+
+  del: <T>(path: string, init?: RequestInit) =>
+    request<T>(path, { ...init, method: 'DELETE' }),
 }

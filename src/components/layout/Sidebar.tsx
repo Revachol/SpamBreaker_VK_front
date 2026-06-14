@@ -2,10 +2,10 @@ import { NavLink } from 'react-router-dom'
 import styles from './Sidebar.module.css'
 
 const NAV_ITEMS = [
-  { to: '/dashboard',           label: 'Dashboard',  icon: '◈' },
-  { to: '/bots/telegram/manage',label: 'Telegram бот', icon: '✈' },
-  { to: '/history',             label: 'История',    icon: '◫' },
-  { to: '/docs',                label: 'API Docs',   icon: '◉' },
+  { to: '/accounts',      label: 'Аккаунты',   icon: '◎' },
+  { to: '/bots/telegram', label: 'Боты',       icon: '◈' },
+  { to: '/api',           label: 'АПИ',        icon: '◉' },
+  { to: '/stats',         label: 'Статистика', icon: '◫' },
 ]
 
 export function Sidebar() {
@@ -14,7 +14,7 @@ export function Sidebar() {
       <div className={styles.logo}>
         <div className={styles.logoIcon}>🛡️</div>
         <div>
-          <div className={styles.logoName}>SpamBreaker</div>
+          <div className={styles.logoName}><a href="/">SpamBreaker</a></div>
           <div className={styles.logoSub}>Admin Panel</div>
         </div>
       </div>
